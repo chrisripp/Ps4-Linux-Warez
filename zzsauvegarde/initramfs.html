@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<title>Initramfs - Ps4-Linux-Warez</title>
+	<meta charset="UTF-8">
+	<meta name="description" content="Ps4-Linux-Warez - Distributions Linux pour PS4 (Debian Trixie, Xubuntu, Peppermint, Manjaro, Fedora), noyaux, Mesa/RADV et outils PS4 Linux">
+	<meta name="keywords" content="ps4, linux, warez, trixie, xubuntu, peppermint, manjaro, fedora, kernel, initramfs, bzimage, mesa, radv">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!-- Favicon -->   
+	<link href="img/favicon.ico" rel="shortcut icon"/>
+
+	<!-- Google Fonts -->
+	<link href="https://fonts.googleapis.com/css?family=Roboto:400,400i,500,500i,700,700i" rel="stylesheet">
+
+	<!-- Stylesheets -->
+	<link rel="stylesheet" href="css/bootstrap.min.css"/>
+	<link rel="stylesheet" href="css/font-awesome.min.css"/>
+	<link rel="stylesheet" href="css/owl.carousel.css"/>
+	<link rel="stylesheet" href="css/style.css"/>
+	<link rel="stylesheet" href="css/animate.css"/>
+	<link rel="stylesheet" href="css/ps4-theme.css"/>
+
+
+	<!--[if lt IE 9]>
+	  <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+	  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+	<![endif]-->
+
+</head>
+<body>
+	<!-- Page Preloder -->
+	<div id="preloder">
+		<div class="loader"></div>
+	</div>
+
+	<!-- Header section -->
+	<header class="header-section">
+		<div class="container">
+			<!-- logo -->
+			<a class="site-logo" href="index.html">
+				<img src="img/logo.png" alt="">
+			</a>
+			<div class="user-panel">
+				<a href="#">Connexion</a>  /  <a href="#">Inscription</a>
+			</div>
+			<!-- responsive -->
+			<div class="nav-switch">
+				<i class="fa fa-bars"></i>
+			</div>
+			<!-- site menu -->
+			<nav class="main-menu">
+				<ul>
+					<li><a href="index.html">Accueil</a></li>
+					<li><a href="review.html">Distributions</a></li>
+					<li><a href="categories.html">Screenshots</a></li>
+					<li><a href="initramfs.html">Initramfs</a></li>
+					<li><a href="bzimage.html">BzImage</a></li>
+					<li><a href="community.html">Communaut&eacute;</a></li>
+					<li><a href="contact.html">Contact</a></li>
+				</ul>
+			</nav>
+		</div>
+	</header>
+	<!-- Header section end -->
+
+
+	<!-- Latest news section -->
+	<div class="latest-news-section">
+		<div class="ln-title">Latest News</div>
+		<div class="news-ticker">
+			<div class="news-ticker-contant">
+				<div class="nt-item"><span class="new">new</span>Mesa 26.2.0-devel : correction en cours du gfx_level (GFX9 au lieu de GFX7 sur Liverpool/Gladius)</div>
+				<div class="nt-item"><span class="strategy">kernel</span>KHEOPS-FullLTO : noyau Clang/LLVM Full LTO optimis&eacute; btver2/Jaguar pour PS4</div>
+				<div class="nt-item"><span class="racing">warez</span>Hybryde PS4 Tools : nouvelle interface GTK/YAD &agrave; 6 onglets disponible</div>
+			</div>
+		</div>
+	</div>
+	<!-- Latest news section end -->
+
+
+	<!-- Page info section -->
+	<section class="page-info-section set-bg" data-setbg="img/page-top-bg/2.jpg">
+		<div class="pi-content">
+			<div class="container">
+				<div class="row">
+					<div class="col-xl-5 col-lg-6 text-white">
+						<h2>Initramfs PS4 Linux</h2>
+						<p>Les images initramfs pr&ecirc;tes &agrave; l'emploi pour chaque distribution, g&eacute;n&eacute;r&eacute;es pour le noyau KHEOPS-FullLTO (Liverpool/Gladius, GFX7).</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+	<!-- Page info section -->
+
+
+	<!-- Page section -->
+	<section class="page-section single-blog-page spad">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-8">
+					<div class="blog-thumb set-bg ps4-hero-terminal" data-setbg="img/recent-game/big.jpg">
+						<div class="cata new">ramfs</div>
+						<div class="ps4-term-box">
+							<code>zcat /boot/initramfs-ps4.img | cpio -t | head</code>
+						</div>
+					</div>
+					<div class="blog-content">
+						<h3>&Agrave; quoi sert l'initramfs sur PS4 Linux ?</h3>
+						<a href="community.html" class="meta-comment">2 commentaires</a>
+						<p>L'initramfs est le syst&egrave;me de fichiers minimal charg&eacute; en RAM au d&eacute;marrage, avant le montage de la partition racine. Sur PS4 Linux, il embarque les modules n&eacute;cessaires au d&eacute;marrage sur le mat&eacute;riel Liverpool/Gladius : contr&ocirc;leur SATA/NVMe, southbridge Baikal, et les premiers modules DRM/amdgpu pour la bascule vers le pilote graphique. Chaque image est g&eacute;n&eacute;r&eacute;e sp&eacute;cifiquement pour le noyau KHEOPS-FullLTO correspondant &agrave; la distribution.</p>
+						<p>Les images ci-dessous sont construites avec <code>dracut</code> (ou <code>mkinitramfs</code> selon la distribution) &agrave; partir des modules du noyau KHEOPS-FullLTO, compil&eacute; en Clang/LLVM Full LTO pour Jaguar (<code>-march=btver2 -mtune=btver2</code>). Elles int&egrave;grent le support Baikal (PCI IDs, MSI, offsets m&eacute;moire port&eacute;s du kernel 5.4 vers 6.15.4) ainsi que les premiers correctifs GFX7 pour Liverpool/Gladius.</p>
+
+						<h4>T&eacute;l&eacute;chargements</h4>
+						<div class="table-responsive">
+							<table class="table ps4-download-table">
+								<thead>
+									<tr><th>Distribution</th><th>Noyau cible</th><th>Fichier</th><th>SHA256</th><th></th></tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td>Debian Trixie</td>
+										<td><code>KHEOPS-FullLTO 6.15.4</code></td>
+										<td><code>initramfs-trixie-ps4.img</code></td>
+										<td><code>&agrave; renseigner</code></td>
+										<td><a href="#" class="site-btn btn-sm">T&eacute;l&eacute;charger</a></td>
+									</tr>
+									<tr>
+										<td>Xubuntu</td>
+										<td><code>KHEOPS-FullLTO 6.15.4</code></td>
+										<td><code>initramfs-xubuntu-ps4.img</code></td>
+										<td><code>&agrave; renseigner</code></td>
+										<td><a href="#" class="site-btn btn-sm">T&eacute;l&eacute;charger</a></td>
+									</tr>
+									<tr>
+										<td>Peppermint OS</td>
+										<td><code>KHEOPS-FullLTO 6.15.4</code></td>
+										<td><code>initramfs-peppermint-ps4.img</code></td>
+										<td><code>&agrave; renseigner</code></td>
+										<td><a href="#" class="site-btn btn-sm">T&eacute;l&eacute;charger</a></td>
+									</tr>
+									<tr>
+										<td>Manjaro</td>
+										<td><code>KHEOPS-FullLTO (rolling)</code></td>
+										<td><code>initramfs-manjaro-ps4.img</code></td>
+										<td><code>&agrave; renseigner</code></td>
+										<td><a href="#" class="site-btn btn-sm">T&eacute;l&eacute;charger</a></td>
+									</tr>
+									<tr>
+										<td>Fedora 42</td>
+										<td><code>KHEOPS-FullLTO 6.15.4</code></td>
+										<td><code>initramfs-fedora-ps4.img</code></td>
+										<td><code>&agrave; renseigner</code></td>
+										<td><a href="#" class="site-btn btn-sm">T&eacute;l&eacute;charger</a></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+						<p class="ps4-note">Les liens et empreintes SHA256 sont &agrave; compl&eacute;ter une fois les fichiers h&eacute;berg&eacute;s sur l'espace free.fr (dossier <code>/dl/initramfs/</code> par exemple).</p>
+
+						<h4>Reconstruire l'image soi-m&ecirc;me</h4>
+						<pre class="ps4-code-block"><code># sur Debian Trixie
+sudo apt install dracut
+sudo dracut --force --kver 6.15.4-kheops-fullto /boot/initramfs-trixie-ps4.img</code></pre>
+					</div>
+					<div class="comment-warp">
+						<h4 class="comment-title">Discussion</h4>
+						<ul class="comment-list">
+							<li>
+								<div class="comment">
+									<div class="comment-avator set-bg" data-setbg="img/authors/1.jpg"></div>
+									<div class="comment-content">
+										<h5>baryluk <span>2026</span></h5>
+										<p>L'image Trixie d&eacute;marre bien sur ma Gladius, le module Baikal est reconnu direct. Toujours pas de son via HDMI par contre. </p>
+										<a href="" class="reply">R&eacute;pondre</a>
+									</div>
+								</div>
+							</li>
+							<li>
+								<div class="comment">
+									<div class="comment-avator set-bg" data-setbg="img/authors/2.jpg"></div>
+									<div class="comment-content">
+										<h5>Dionkill <span>2026</span></h5>
+										<p>Pensez &agrave; v&eacute;rifier la version du noyau install&eacute; avant de flasher l'initramfs correspondant, un mismatch emp&ecirc;che le boot. </p>
+										<a href="" class="reply">R&eacute;pondre</a>
+									</div>
+								</div>
+							</li>
+						</ul>
+					</div>
+					<div class="comment-form-warp">
+						<h4 class="comment-title">Laisser un commentaire</h4>
+						<form class="comment-form">
+							<div class="row">
+								<div class="col-md-6">
+									<input type="text" placeholder="Name">
+								</div>
+								<div class="col-md-6">
+									<input type="email" placeholder="Email">
+								</div>
+								<div class="col-lg-12">
+									<input type="text" placeholder="Subject">
+									<textarea placeholder="Message"></textarea>
+									<button class="site-btn btn-sm">Send</button>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+				<!-- sidebar -->
+				<div class="col-lg-4 col-md-7 sidebar pt-5 pt-lg-0">
+					<!-- widget -->
+					<div class="widget-item">
+						<form class="search-widget">
+							<input type="text" placeholder="Rechercher">
+							<button><i class="fa fa-search"></i></button>
+						</form>
+					</div>
+					<!-- widget -->
+					<div class="widget-item">
+						<h4 class="widget-title">Derniers articles</h4>
+						<div class="latest-blog">
+							<div class="lb-item">
+								<div class="lb-thumb set-bg" data-setbg="img/latest-blog/1.jpg"></div>
+								<div class="lb-content">
+									<div class="lb-date">2026</div>
+									<p>Patch gfx_level Mesa RADV pour GFX7</p>
+									<a href="debian-trixie.html" class="lb-author">Par tux</a>
+								</div>
+							</div>
+							<div class="lb-item">
+								<div class="lb-thumb set-bg" data-setbg="img/latest-blog/2.jpg"></div>
+								<div class="lb-content">
+									<div class="lb-date">2026</div>
+									<p>Topologie PS4 : 9 CU/SE, 18 CU Liverpool</p>
+									<a href="debian-trixie.html" class="lb-author">Par tux</a>
+								</div>
+							</div>
+							<div class="lb-item">
+								<div class="lb-thumb set-bg" data-setbg="img/latest-blog/3.jpg"></div>
+								<div class="lb-content">
+									<div class="lb-date">2026</div>
+									<p>KHEOPS-FullLTO : notes de compilation</p>
+									<a href="debian-trixie.html" class="lb-author">Par tux</a>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- widget -->
+					<div class="widget-item">
+						<h4 class="widget-title">Communaut&eacute;</h4>
+						<div class="top-comment">
+							<div class="tc-item">
+								<div class="tc-thumb set-bg" data-setbg="img/authors/1.jpg"></div>
+								<div class="tc-content">
+									<p><a href="#">theflow0</a> <span>&mdash;</span> recherche PS4</p>
+									<div class="tc-date">Communaut&eacute;</div>
+								</div>
+							</div>
+							<div class="tc-item">
+								<div class="tc-thumb set-bg" data-setbg="img/authors/2.jpg"></div>
+								<div class="tc-content">
+									<p><a href="#">crashniels</a> <span>&mdash;</span> outils PS4 Linux</p>
+									<div class="tc-date">Communaut&eacute;</div>
+								</div>
+							</div>
+							<div class="tc-item">
+								<div class="tc-thumb set-bg" data-setbg="img/authors/3.jpg"></div>
+								<div class="tc-content">
+									<p><a href="#">Dionkill</a> <span>&mdash;</span> contributions kernel</p>
+									<div class="tc-date">Communaut&eacute;</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- widget -->
+					<div class="widget-item">
+						<div class="feature-item set-bg" data-setbg="img/features/1.jpg">
+							<span class="cata new">outil</span>
+							<div class="fi-content text-white">
+								<h5><a href="community.html">Hybryde PS4 Tools (ps4-tools.sh)</a></h5>
+								<p>Interface GTK/YAD tout-en-un pour g&eacute;rer sa PS4 Linux. </p>
+								<a href="community.html" class="fi-comment">D&eacute;couvrir</a>
+							</div>
+						</div>
+					</div>
+					<!-- widget -->
+					<div class="widget-item">
+						<div class="review-item">
+							<div class="review-cover set-bg" data-setbg="img/review/1.jpg">
+								<div class="score yellow">9.5</div>
+							</div>
+							<div class="review-text">
+								<h5>Debian Trixie</h5>
+								<p>La distribution de r&eacute;f&eacute;rence du projet Ps4-Linux-Warez.</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+	<!-- Page section end -->
+
+
+	<!-- Footer top section -->
+	<section class="footer-top-section">
+		<div class="container">
+			<div class="footer-top-bg">
+				<img src="img/footer-top-bg.png" alt="">
+			</div>
+			<div class="row">
+				<div class="col-lg-4">
+					<div class="footer-logo text-white">
+						<img src="img/footer-logo.png" alt="">
+						<p>Ps4-Linux-Warez : distributions Linux, noyaux et outils pour PlayStation 4. Projet communautaire non affili&eacute; &agrave; Sony.</p>
+					</div>
+				</div>
+				<div class="col-lg-4 col-md-6">
+					<div class="footer-widget mb-5 mb-md-0">
+						<h4 class="fw-title">Derniers articles</h4>
+						<div class="latest-blog">
+							<div class="lb-item">
+								<div class="lb-thumb set-bg" data-setbg="img/latest-blog/1.jpg"></div>
+								<div class="lb-content">
+									<div class="lb-date">2026</div>
+									<p>Mesa RADV : correction du gfx_level GFX7</p>
+									<a href="debian-trixie.html" class="lb-author">Par tux</a>
+								</div>
+							</div>
+							<div class="lb-item">
+								<div class="lb-thumb set-bg" data-setbg="img/latest-blog/2.jpg"></div>
+								<div class="lb-content">
+									<div class="lb-date">2026</div>
+									<p>mesa-build.py : fix sudo --preserve-env sur Elive</p>
+									<a href="debian-trixie.html" class="lb-author">Par tux</a>
+								</div>
+							</div>
+							<div class="lb-item">
+								<div class="lb-thumb set-bg" data-setbg="img/latest-blog/3.jpg"></div>
+								<div class="lb-content">
+									<div class="lb-date">2026</div>
+									<p>DualShock 4 en Bluetooth : profil HID en cours</p>
+									<a href="debian-trixie.html" class="lb-author">Par tux</a>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-4 col-md-6">
+					<div class="footer-widget">
+						<h4 class="fw-title">Communaut&eacute;</h4>
+						<div class="top-comment">
+							<div class="tc-item">
+								<div class="tc-thumb set-bg" data-setbg="img/authors/1.jpg"></div>
+								<div class="tc-content">
+									<p><a href="#">fail0verflow</a> <span>&mdash;</span> recherche &amp; outils PS4</p>
+									<div class="tc-date">Communaut&eacute;</div>
+								</div>
+							</div>
+							<div class="tc-item">
+								<div class="tc-thumb set-bg" data-setbg="img/authors/2.jpg"></div>
+								<div class="tc-content">
+									<p><a href="#">GoldHEN Team</a> <span>&mdash;</span> homebrew enabler</p>
+									<div class="tc-date">Communaut&eacute;</div>
+								</div>
+							</div>
+							<div class="tc-item">
+								<div class="tc-thumb set-bg" data-setbg="img/authors/3.jpg"></div>
+								<div class="tc-content">
+									<p><a href="#">OpenOrbis</a> <span>&mdash;</span> SDK payloads PS4</p>
+									<div class="tc-date">Communaut&eacute;</div>
+								</div>
+							</div>
+							<div class="tc-item">
+								<div class="tc-thumb set-bg" data-setbg="img/authors/4.jpg"></div>
+								<div class="tc-content">
+									<p><a href="#">@triki1_bot</a> <span>&mdash;</span> bot Telegram PS4 Linux</p>
+									<div class="tc-date">Communaut&eacute;</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+	<!-- Footer top section end -->
+
+	
+	<!-- Footer section -->
+	<footer class="footer-section">
+		<div class="container">
+			<ul class="footer-menu">
+				<li><a href="index.html">Accueil</a></li>
+				<li><a href="review.html">Distributions</a></li>
+				<li><a href="categories.html">Screenshots</a></li>
+				<li><a href="initramfs.html">Initramfs</a></li>
+				<li><a href="bzimage.html">BzImage</a></li>
+				<li><a href="community.html">Communaut&eacute;</a></li>
+				<li><a href="contact.html">Contact</a></li>
+			</ul>
+			<p class="copyright"><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+Ps4-Linux-Warez &mdash; par tux / triki1. Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | Th&egrave;me original <i class="fa fa-heart-o" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
+<!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+</p>
+		</div>
+	</footer>
+	<!-- Footer section end -->
+
+
+	<!--====== Javascripts & Jquery ======-->
+	<script src="js/jquery-3.2.1.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/owl.carousel.min.js"></script>
+	<script src="js/jquery.marquee.min.js"></script>
+	<script src="js/main.js"></script>
+    </body>
+</html>

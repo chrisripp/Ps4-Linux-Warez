@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: http://hostps4.free.fr/Ps4-Linux-Warez/sitemap.xml

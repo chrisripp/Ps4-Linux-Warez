@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<title>Compiler son noyau avec PS4-TOOLS - Ps4-Linux-Warez</title>
+	<meta charset="UTF-8">
+	<meta name="description" content="Ps4-Linux-Warez - Distributions Linux pour PS4 (Debian Trixie, Xubuntu, Peppermint, Manjaro, Fedora), noyaux, Mesa/RADV et outils PS4 Linux">
+	<meta name="keywords" content="ps4, linux, warez, trixie, xubuntu, peppermint, manjaro, fedora, kernel, initramfs, bzimage, mesa, radv">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!-- Favicon -->
+	<link href="img/favicon.ico" rel="shortcut icon"/>
+
+	<!-- Google Fonts -->
+	<link href="https://fonts.googleapis.com/css?family=Roboto:400,400i,500,500i,700,700i" rel="stylesheet">
+
+	<!-- Stylesheets -->
+	<link rel="stylesheet" href="css/bootstrap.min.css"/>
+	<link rel="stylesheet" href="css/font-awesome.min.css"/>
+	<link rel="stylesheet" href="css/owl.carousel.css"/>
+	<link rel="stylesheet" href="css/style.css"/>
+	<link rel="stylesheet" href="css/animate.css"/>
+	<link rel="stylesheet" href="css/ps4-theme.css"/>
+
+
+	<!--[if lt IE 9]>
+	  <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+	  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+	<![endif]-->
+
+</head>
+<body>
+	<!-- Page Preloder -->
+	<div id="preloder">
+		<div class="loader"></div>
+	</div>
+
+	<!-- Header section -->
+	<header class="header-section">
+		<div class="container">
+			<!-- logo -->
+			<a class="site-logo" href="index.html">
+				<img src="img/logo.png" alt="">
+			</a>
+			<!-- responsive -->
+			<div class="nav-switch">
+				<i class="fa fa-bars"></i>
+			</div>
+			<!-- site menu -->
+			<nav class="main-menu">
+				<ul>
+					<li><a href="index.html">Accueil</a></li>
+					<li><a href="review.html">Distributions</a></li>
+					<!-- <li><a href="categories.html">Screenshots</a></li> -->
+					<li><a href="initramfs.html">Initramfs</a></li>
+					<li><a href="bzimage.html">BzImage</a></li>
+					<li><a href="tutoriels.html">Tutoriels</a></li>
+					<li><a href="contact.html">Contact</a></li>
+				</ul>
+			</nav>
+		</div>
+	</header>
+	<!-- Header section end -->
+
+
+	<!-- Latest news section -->
+	<div class="latest-news-section">
+		<div class="ln-title">Latest News</div>
+		<div class="news-ticker">
+			<div class="news-ticker-contant">
+				<div class="nt-item"><span class="new">new</span>Mesa 26.2.0-devel</div>
+				<div class="nt-item"><span class="strategy">kernel</span>kernel 7.x</div>
+				<div class="nt-item"><span class="racing">warez</span>PS4 Tools : mise a jour</div>
+			</div>
+		</div>
+	</div>
+	<!-- Latest news section end -->
+
+
+	<!-- Page info section -->
+	<section class="page-info-section set-bg" data-setbg="img/page-top-bg/2.jpg">
+		<div class="pi-content">
+			<div class="container">
+				<div class="row">
+					<div class="col-xl-5 col-lg-6 text-white">
+						<h2>Compiler son noyau avec PS4-TOOLS</h2>
+						<p>Utiliser PS4-TOOLS pour pr&eacute;parer, configurer (menuconfig) et compiler un Bzimage (kernel) pour PS4.</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+	<!-- Page info section -->
+
+
+	<!-- Page section -->
+	<section class="page-section single-blog-page spad">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-12">
+					<div class="blog-thumb set-bg" data-setbg="img/recent-game/big.jpg">
+						<div class="cata new">kernel</div>
+					</div>
+					<div class="blog-content">
+						<h3>Compiler son noyau PS4 avec PS4-TOOLS</h3>
+						<p>PS4-TOOLS int&egrave;gre un onglet d&eacute;di&eacute; &agrave; la compilation des bzimages : r&eacute;cup&eacute;ration des sources, application des patchs PS4.(Liverpool/Gladius), puis lancement de <code>menuconfig</code> avant de d&eacute;marrer la compilation Clang/LLVM Full LTO.</p>
+
+						<p class="ps4-note">Les menus exacts de l'outil peuvent l&eacute;g&egrave;rement changer d'une version &agrave; l'autre du script. Le principe reste le m&ecirc;me : source &rarr; patchs &rarr; menuconfig &rarr; build. En cas de doute, regarde les vid&eacute;os ci-dessous qui montrent le d&eacute;roul&eacute; complet.</p>
+
+						<h4>&Eacute;tapes avec PS4-TOOLS</h4>
+						<ul class="ps4-feature-list">
+							<li>Lancer <code>ps4tools-en-final7.sh</code> et ouvrir l'onglet Noyau / Kernel</li>
+							<li>T&eacute;l&eacute;charger ou mettre &agrave; jour les sources Kernel</li>
+							<li>Appliquer les patchs supplèmentaires, si nécessaire, le bootargs, si besoin</li>
+							<li>Ouvrir <code>menuconfig</code> vérifier les options requises pour la PS4.</li>
+							<li>Enfin, lancer la compilation Full LTO (Clang/LLVM) une fois la configuration valid&eacute;e</li>
+							<li>Faites preuve de patience, il vous faudra plusieurs essais avant d'avoir un Bzimage complet</li>
+						</ul>
+
+						<h4>Pourquoi compiler pour Jaguar (btver2) et pas en x86-64 g&eacute;n&eacute;rique ?</h4>
+						<p>Le CPU de la PS4 est un AMD Jaguar (8 c&oelig;urs, architecture &laquo;&nbsp;Puma/Jaguar&nbsp;&raquo;). En Clang/GCC, la cible de compilation correspondante s'appelle <code>btver2</code>. Compiler avec <code>-march=btver2</code> plut&ocirc;t qu'une cible g&eacute;n&eacute;rique (<code>x86-64</code>, <code>x86-64-v2/v3</code>...) a deux cons&eacute;quences, une de <strong>correction</strong> et une de <strong>performance</strong> :</p>
+						<ul class="ps4-feature-list">
+							<li><strong>Correction (le plus important)</strong> : un noyau compil&eacute; en cible g&eacute;n&eacute;rique moderne (ou en <code>-march=native</code> sur une machine de build r&eacute;cente) peut contenir des instructions que le Jaguar de la PS4 ne sait tout simplement pas ex&eacute;cuter (par exemple AVX/AVX2, absentes sur Jaguar). R&eacute;sultat : crash direct par instruction ill&eacute;gale au d&eacute;marrage. <code>btver2</code> garantit que le compilateur ne g&eacute;n&egrave;re que des instructions r&eacute;ellement support&eacute;es par ce CPU.</li>
+							<li><strong>Performance</strong> : m&ecirc;me pour les instructions communes, <code>-mtune=btver2</code> ajuste l'ordonnancement du code (latences, largeur d'&eacute;mission) au pipeline r&eacute;el du Jaguar, qui est un petit c&oelig;ur out-of-order &agrave; faible fr&eacute;quence &mdash; tr&egrave;s diff&eacute;rent d'un CPU desktop moderne pour lequel une cible g&eacute;n&eacute;rique serait implicitement optimis&eacute;e.</li>
+						</ul>
+						<p class="ps4-note">C'est exactement ce que r&egrave;gle PS4-TOOLS &agrave; ta place : il passe automatiquement <code>KCFLAGS="-march=btver2 -mtune=btver2"</code> au moment du build, sans que tu aies besoin d'&eacute;diter de Makefile ou de te souvenir de ces flags &agrave; chaque compilation.</p>
+
+						<h4>LTO et Full LTO : quelle diff&eacute;rence ?</h4>
+						<p>Normalement, un compilateur optimise chaque fichier <code>.c</code> du noyau s&eacute;par&eacute;ment, puis un &eacute;diteur de liens assemble les fichiers objets sans grande optimisation suppl&eacute;mentaire. Le <strong>LTO</strong> (Link Time Optimization) change ça : les optimisations sont report&eacute;es &agrave; l'&eacute;tape de liaison, quand le compilateur a une vue sur l'ensemble du code &agrave; la fois, ce qui permet de l'inlining et des &eacute;liminations de code mort &agrave; travers les fronti&egrave;res de fichiers, impossible autrement.</p>
+						<p>Clang propose deux niveaux :</p>
+						<ul class="ps4-feature-list">
+							<li><strong>Thin LTO</strong> : version parall&eacute;lis&eacute;e et incr&eacute;mentale, rapide &agrave; compiler et raisonnable en RAM, avec la majorit&eacute; du gain de performance du LTO complet.</li>
+							<li><strong>Full LTO</strong> : tout le noyau est fusionn&eacute; en une seule unit&eacute; de compilation g&eacute;ante et optimis&eacute; d'un bloc. C'est le niveau d'optimisation le plus agressif possible (meilleur inlining inter-modules, meilleures d&eacute;cisions du compilateur sur l'ensemble du code), mais au prix d'une compilation beaucoup plus longue et tr&egrave;s gourmande en RAM &mdash; d'o&ugrave; l'importance du swap &eacute;voqu&eacute; plus haut.</li>
+						</ul>
+						<p>Beaucoup de <strong>Developpeurs</strong> font ce choix du Full LTO pour tirer le maximum de performance d'un CPU par ailleurs assez faible (Jaguar), quitte &agrave; payer le co&ucirc;t en temps et en m&eacute;moire au moment de la compilation &mdash; un compromis raisonnable puisque le build ne se fait qu'une fois, alors que le noyau tourne ensuite en continu sur la PS4.</p>
+						<p class="ps4-note">L&agrave; encore, PS4-TOOLS s'occupe de tout : il active la bonne option <code>LTO_CLANG_FULL</code> dans la configuration du noyau et lance le build avec Clang/LLVM. Tu n'as rien &agrave; configurer manuellement pour ça, sauf si tu veux explicitement basculer sur Thin LTO pour des tests plus rapides.</p>
+
+						<h4>Ce qu'il faut v&eacute;rifier dans menuconfig pour la PS4</h4>
+						<p>Une fois dans <code>menuconfig</code>, quelques sections m&eacute;ritent une attention particuli&egrave;re pour que le noyau d&eacute;marre correctement sur PS4 :</p>
+
+						<p><strong>Graphique (AMDGPU / GFX7)</strong> &mdash; indispensable pour Liverpool/Gladius :</p>
+						<pre class="ps4-code-block"><code>Device Drivers ---&gt;
+  Graphics support ---&gt;
+    [*] AMD GPU
+    [*]   Enable amdgpu support for SI parts (si)
+    [*]   Enable amdgpu support for CIK parts (cik)
+    [*]   AMDGPU DC - Display Core (DC) support</code></pre>
+						<p class="ps4-note">Liverpool/Gladius est de la famille GFX7 (Sea Islands / CIK) : c'est l'option <code>CIK</code> qu'il faut absolument garder activ&eacute;e.</p>
+
+						<p><strong>Bluetooth / Wifi (Marvell 88W8977)</strong> :</p>
+						<pre class="ps4-code-block"><code>Networking support ---&gt;
+  Bluetooth subsystem support ---&gt;
+    [*] Marvell Bluetooth driver support
+
+Device Drivers ---&gt;
+  [*] Firmware Drivers ---&gt;
+    [*] Userspace firmware loading support
+  Network device support ---&gt;
+    Wireless LAN ---&gt;
+      [*] Marvell WiFi-Ex Driver</code></pre>
+
+						<p><strong>Full LTO (Clang)</strong> &mdash; c'est la base d'un grand nombre de kernel FullLTO :</p>
+						<pre class="ps4-code-block"><code>General setup ---&gt;
+  Link Time Optimization (LTO) ---&gt;
+    (X) Clang Full LTO (LTO_CLANG_FULL)</code></pre>
+						<p class="ps4-note">Le ciblage processeur Jaguar ne se fait pas dans menuconfig mais via les flags de compilation, voir la section &laquo;&nbsp;Pourquoi compiler pour Jaguar&nbsp;&raquo; plus haut. Pas besoin de chercher une option &laquo;&nbsp;Jaguar&nbsp;&raquo; dans le menu &laquo;&nbsp;Processor type and features&nbsp;&raquo;, elle n'existe pas &agrave; ce niveau de granularit&eacute;.</p>
+
+						<p><strong>zram (optionnel, recommand&eacute; vu les 8&nbsp;Go de RAM partag&eacute;e)</strong> :</p>
+						<pre class="ps4-code-block"><code>Device Drivers ---&gt;
+  Block devices ---&gt;
+    [*] Compressed RAM block device support (ZRAM)</code></pre>
+
+						<h4>Lancer la compilation</h4>
+						<p>Une fois <code>menuconfig</code> enregistr&eacute; (touche <code>S</code> puis <code>Q</code>), PS4-TOOLS prend le relais pour lancer le build Clang/LLVM Full LTO. Selon ta machine, pr&eacute;voit du temps (et du swap, voir le tutoriel <a href="swap.html">Cr&eacute;er un fichier d'&eacute;change swap</a>) : le Full LTO est nettement plus gourmand en m&eacute;moire qu'une compilation classique.</p>
+
+						<h4>Patchs kernel de distributions gaming (CachyOS, Nobara, Bazzite, Drauger OS)</h4>
+						<p>Plusieurs distributions orient&eacute;es gaming publient leurs patchs kernel en acc&egrave;s libre. Certains (ordonnancement, r&eacute;activit&eacute;, correctifs mat&eacute;riel) peuvent s'appliquer &agrave; une PS4 sous Linux, &agrave; tester au cas par cas :</p>
+						<div class="table-responsive">
+							<table class="table ps4-download-table">
+								<thead>
+									<tr><th>Distribution</th><th>D&eacute;p&ocirc;t de patchs</th><th>Note</th></tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td>CachyOS</td>
+										<td><a href="https://github.com/CachyOS/kernel-patches" target="_blank" rel="noopener">github.com/CachyOS/kernel-patches</a></td>
+										<td>D&eacute;p&ocirc;t officiel : ordonnanceurs (BORE, EEVDF...), LTO, correctifs divers, organis&eacute;s par version de noyau</td>
+									</tr>
+									<tr>
+										<td>Nobara</td>
+										<td><a href="https://wiki.nobaraproject.org/modifications/kernel" target="_blank" rel="noopener">wiki.nobaraproject.org/modifications/kernel</a></td>
+										<td>Nobara part du noyau CachyOS et ajoute ses propres patchs mat&eacute;riel (handheld, manettes...)</td>
+									</tr>
+									<tr>
+										<td>Bazzite</td>
+										<td><a href="https://github.com/bazzite-org/patchwork" target="_blank" rel="noopener">github.com/bazzite-org/patchwork</a></td>
+										<td>D&eacute;p&ocirc;t officiel des patchs Bazzite (bas&eacute; sur le noyau Fedora ARK)</td>
+									</tr>
+									<tr>
+										<td>Bazzite (fork PS4)</td>
+										<td><a href="https://github.com/PfisterFactor/kernel-bazzite-ps4" target="_blank" rel="noopener">github.com/PfisterFactor/kernel-bazzite-ps4</a></td>
+										<td>Fork du noyau Bazzite portant explicitement la mention PS4 dans son nom : &agrave; explorer en priorit&eacute; pour ce projet</td>
+									</tr>
+									<tr>
+										<td>Drauger OS</td>
+										<td><a href="https://github.com/drauger-os-development/kernel-config" target="_blank" rel="noopener">github.com/drauger-os-development/kernel-config</a></td>
+										<td>Configuration et patchs du noyau maison de Drauger OS (bas&eacute; Ubuntu/gaming)</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+						<p class="ps4-note">Ces patchs ne sont pas &eacute;crits pour la PS4 : certains s'appliqueront proprement, d'autres non (d&eacute;pendances mat&eacute;rielles diff&eacute;rentes). Toujours tester en <code>--dry-run</code> avant application r&eacute;elle (voir fonction ci-dessous), et ne jamais patcher un arbre de sources sans sauvegarde.</p>
+
+						<h4>Fonction pour patcher un noyau (patch -p1)</h4>
+						<p>La plupart des patchs kernel distribu&eacute;s au format <code>git format-patch</code> (dont ceux list&eacute;s ci-dessus) s'appliquent avec <code>patch -p1</code> : le <code>-p1</code> retire le premier niveau de chemin (<code>a/</code> / <code>b/</code>) g&eacute;n&eacute;r&eacute; par git, pour que le patch tombe directement &agrave; la racine des sources du noyau.</p>
+						<pre class="ps4-code-block"><code># À placer dans .bashrc ou un script à part
+
+patch_p1() {
+    local patch_file="$1"
+
+    if [ -z "$patch_file" ] || [ ! -f "$patch_file" ]; then
+        echo "Usage : patch_p1 chemin/vers/le.patch"
+        return 1
+    fi
+
+    echo "== Test à blanc (dry-run) : $patch_file =="
+    if patch -p1 --dry-run < "$patch_file"; then
+        echo "== OK, application réelle =="
+        patch -p1 < "$patch_file"
+    else
+        echo "== Échec du dry-run, patch NON appliqué : $patch_file =="
+        return 1
+    fi
+}
+
+# Variante : appliquer tous les .patch d'un dossier, dans l'ordre
+patch_p1_dir() {
+    local dir="$1"
+    for p in "$dir"/*.patch; do
+        patch_p1 "$p" || { echo "Arrêt sur échec : $p"; return 1; }
+    done
+}</code></pre>
+						<p>Utilisation, depuis la racine des sources du noyau :</p>
+						<pre class="ps4-code-block"><code>source ~/.bashrc   # si la fonction vient d'être ajoutée
+
+cd ~/kernel-source
+patch_p1 ~/kernel-patches/6.15/misc/0001-handheld.patch
+
+# ou tout un dossier de patchs d'un coup
+patch_p1_dir ~/kernel-patches/6.15/misc</code></pre>
+						<p class="ps4-note">Si <code>patch -p1</code> renvoie une erreur de niveau de chemin (fichiers introuvables), essaie <code>-p0</code> ou <code>-p2</code> : certains d&eacute;p&ocirc;ts ne suivent pas exactement la convention <code>a/</code>/<code>b/</code> de git.</p>
+
+						<h4>Vid&eacute;os</h4>
+						<div class="embed-responsive embed-responsive-16by9 ps4-video-embed">
+							<iframe class="embed-responsive-item" src="https://www.youtube.com/embed/52rHzFC-yq8" title="Compilation kernel PS4 avec PS4-TOOLS - pr&eacute;sentation" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+						</div>
+						<div class="embed-responsive embed-responsive-16by9 ps4-video-embed">
+							<iframe class="embed-responsive-item" src="https://www.youtube.com/embed/BDz_39zZ_N4?start=2118" title="Compilation kernel PS4 - menuconfig" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+						</div>
+						<div class="embed-responsive embed-responsive-16by9 ps4-video-embed">
+							<iframe class="embed-responsive-item" src="https://www.youtube.com/embed/djn2URmBoHs?start=1347" title="Compilation kernel PS4 - build Full LTO" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+						</div>
+
+						<p>Voir aussi : <a href="PS4Tools.html">PS4-TOOLS &mdash; la boite a outils ultime, pour PS4</a>, <a href="bzimage.html">Compiler un noyau BzImage</a> et <a href="initramfs.html">Flasher un Initramfs</a>.</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+	<!-- Page section end -->
+
+	<!-- Footer top section end -->
+
+
+	<!-- Footer section -->
+	<footer class="footer-section">
+		<div class="container">
+			<ul class="footer-menu">
+				<li><a href="index.html">Accueil</a></li>
+				<li><a href="review.html">Distributions</a></li>
+				<!-- <li><a href="categories.html">Screenshots</a></li> -->
+				<li><a href="initramfs.html">Initramfs</a></li>
+				<li><a href="bzimage.html">BzImage</a></li>
+				<li><a href="tutoriels.html">Tutoriels</a></li>
+				<li><a href="contact.html">Contact</a></li>
+			</ul>
+			<p class="copyright"><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+Ps4-Linux-Warez &mdash; par tux / triki1. Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | Th&egrave;me original <i class="fa fa-heart-o" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
+<!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+</p>
+		</div>
+	</footer>
+	<!-- Footer section end -->
+
+
+	<!--====== Javascripts & Jquery ======-->
+	<script src="js/jquery-3.2.1.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/owl.carousel.min.js"></script>
+	<script src="js/jquery.marquee.min.js"></script>
+	<script src="js/main.js"></script>
+    </body>
+</html>

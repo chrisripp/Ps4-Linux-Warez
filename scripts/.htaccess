@@ -1,0 +1,5 @@
+<IfModule mod_headers.c>
+    <FilesMatch "\.tar\.gz$">
+        Header set Content-Disposition "attachment"
+    </FilesMatch>
+</IfModule>

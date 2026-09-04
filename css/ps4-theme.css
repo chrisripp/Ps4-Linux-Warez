@@ -1,0 +1,325 @@
+/* =========================================================
+   Ps4-Linux-Warez — thème additif "PS4"
+   À charger APRÈS css/style.css (ne remplace pas le thème
+   Game Warrior d'origine, il le teinte en bleu PS4/console).
+   ========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+:root{
+	--ps4-bg-deep:   #050b16;
+	--ps4-blue:      #0072ce;
+	--ps4-blue-dark: #003876;
+	--ps4-cyan:      #29d3f5;
+	--ps4-white:     #eaf3ff;
+	--ps4-amber:     #ffb020;
+	--ps4-mono:      'JetBrains Mono', 'Consolas', monospace;
+}
+
+/* ---- Barre lumineuse "boot PS4" en haut de page ---- */
+body::before{
+	content:"";
+	position:fixed;
+	top:0; left:0; right:0;
+	height:3px;
+	z-index:9999;
+	background:linear-gradient(90deg,
+		var(--ps4-blue) 0%, var(--ps4-cyan) 50%, var(--ps4-blue) 100%);
+	box-shadow:0 0 12px 1px var(--ps4-cyan);
+}
+
+/* ---- Boutons ---- */
+.site-btn{
+	background:linear-gradient(135deg, var(--ps4-blue-dark), var(--ps4-blue) 60%, var(--ps4-cyan)) !important;
+	border:none !important;
+	box-shadow:0 0 0 rgba(41,211,245,0);
+	transition:box-shadow .25s ease, transform .15s ease;
+	letter-spacing:.03em;
+}
+.site-btn:hover{
+	box-shadow:0 0 18px 2px rgba(41,211,245,.55);
+	transform:translateY(-1px);
+}
+
+/* ---- Badges de catégorie ("cata") et scores ---- */
+.cata{
+	font-family:var(--ps4-mono);
+	font-weight:600;
+	letter-spacing:.06em;
+	text-transform:uppercase;
+	background:var(--ps4-blue-dark) !important;
+	color:var(--ps4-cyan) !important;
+	border:1px solid rgba(41,211,245,.5);
+	box-shadow:0 0 8px rgba(0,114,206,.6);
+}
+
+.score{
+	font-family:var(--ps4-mono) !important;
+	font-weight:700;
+	background:var(--ps4-bg-deep) !important;
+	color:var(--ps4-cyan) !important;
+	border:1px solid var(--ps4-blue);
+	box-shadow:0 0 10px rgba(41,211,245,.35);
+}
+
+/* ---- Titres de section : soulignement néon façon XMB ---- */
+.section-title h2,
+.page-info-section h2,
+.community-top-title,
+.comment-title{
+	position:relative;
+	padding-bottom:.35em;
+}
+.section-title h2::after,
+.page-info-section h2::after{
+	content:"";
+	display:block;
+	width:64px;
+	height:3px;
+	margin-top:10px;
+	background:linear-gradient(90deg, var(--ps4-blue), var(--ps4-cyan));
+	box-shadow:0 0 10px rgba(41,211,245,.7);
+}
+.page-info-section h2{
+	text-shadow:0 0 18px rgba(0,114,206,.55);
+}
+
+/* ---- Code / monospace (registres, versions noyau, commandes) ---- */
+code, kbd, pre, .ps4-code-block{
+	font-family:var(--ps4-mono);
+}
+.blog-content code, .comment-content code, p code{
+	background:rgba(0,114,206,.12);
+	color:var(--ps4-cyan);
+	padding:.1em .4em;
+	border-radius:3px;
+	border:1px solid rgba(41,211,245,.25);
+}
+
+.ps4-code-block{
+	background:var(--ps4-bg-deep);
+	color:var(--ps4-white);
+	border:1px solid var(--ps4-blue);
+	border-radius:6px;
+	padding:18px 20px;
+	overflow-x:auto;
+	box-shadow:inset 0 0 24px rgba(0,114,206,.25);
+	margin:18px 0;
+}
+.ps4-code-block code{
+	background:none;
+	border:none;
+	color:inherit;
+	padding:0;
+}
+
+/* ---- Encart "terminal" affiché en tête d'article (initramfs / bzImage) ---- */
+.ps4-hero-terminal{
+	position:relative;
+}
+.ps4-term-box{
+	position:absolute;
+	left:24px;
+	bottom:24px;
+	background:rgba(5,11,22,.85);
+	border:1px solid var(--ps4-cyan);
+	color:var(--ps4-cyan);
+	font-family:var(--ps4-mono);
+	font-size:14px;
+	padding:10px 16px;
+	border-radius:4px;
+	box-shadow:0 0 20px rgba(41,211,245,.4);
+}
+.ps4-term-box code{ background:none; border:none; padding:0; color:inherit; }
+
+/* ---- Tableaux de téléchargement (initramfs / bzImage) ---- */
+.ps4-download-table{
+	width:100%;
+	border-collapse:collapse;
+	background:var(--ps4-bg-deep);
+	color:var(--ps4-white);
+	border:1px solid var(--ps4-blue-dark);
+}
+.ps4-download-table th,
+.ps4-download-table td{
+	padding:10px 14px;
+	border-bottom:1px solid rgba(41,211,245,.15);
+	text-align:left;
+	font-size:14px;
+}
+.ps4-download-table th{
+	font-family:var(--ps4-mono);
+	color:var(--ps4-cyan);
+	text-transform:uppercase;
+	letter-spacing:.05em;
+	font-size:12px;
+}
+.ps4-download-table tr:hover td{
+	background:rgba(0,114,206,.08);
+}
+
+.ps4-note{
+	font-size:13px;
+	color:#7d93b3;
+	border-left:3px solid var(--ps4-amber);
+	padding:8px 14px;
+	background:rgba(255,176,32,.06);
+}
+
+/* ---- Vignettes de distribution cliquables (review.html) ---- */
+.review-item .review-cover{
+	display:block;
+	cursor:pointer;
+	transition:filter .2s ease, box-shadow .2s ease;
+}
+.review-item a{
+	display:block;
+	text-decoration:none;
+	color:inherit;
+}
+.review-item a .review-cover:hover{
+	filter:brightness(1.08);
+	box-shadow:0 0 16px rgba(41,211,245,.5);
+}
+.review-text h4 a,
+.review-text h4 a:hover{
+	color:inherit;
+	text-decoration:none;
+}
+.review-text h4 a:hover{
+	color:var(--ps4-cyan);
+}
+
+/* ---- Liste de fonctionnalités (ex : page Elive) ---- */
+.ps4-feature-list{
+	list-style:none;
+	margin:0 0 16px;
+	padding:0;
+}
+.ps4-feature-list li{
+	position:relative;
+	padding-left:22px;
+	margin-bottom:6px;
+	font-family:var(--ps4-mono);
+	font-size:14px;
+}
+.ps4-feature-list li::before{
+	content:"›";
+	position:absolute;
+	left:0;
+	color:var(--ps4-cyan);
+	font-weight:700;
+}
+
+/* ---- Capture d'écran illustrée dans un article ---- */
+.ps4-screenshot{
+	margin:22px 0;
+	text-align:center;
+}
+.ps4-screenshot img{
+	max-width:100%;
+	height:auto;
+	border:1px solid var(--ps4-blue-dark);
+	border-radius:6px;
+	box-shadow:0 0 20px rgba(0,114,206,.35);
+}
+.ps4-screenshot figcaption{
+	margin-top:8px;
+	font-size:13px;
+	color:#7d93b3;
+	font-family:var(--ps4-mono);
+}
+
+/* ---- Lecteur vidéo intégré (YouTube) ---- */
+.ps4-video-embed{
+	margin:22px 0;
+	border:1px solid var(--ps4-blue-dark);
+	border-radius:6px;
+	overflow:hidden;
+	box-shadow:0 0 20px rgba(0,114,206,.35);
+	background:var(--ps4-bg-deep);
+}
+.ps4-video-embed iframe{
+	border:0;
+}
+/* Fallback si Bootstrap embed-responsive n'est pas chargé */
+.ps4-video-embed.embed-responsive{
+	position:relative;
+	display:block;
+	width:100%;
+	padding:0;
+	overflow:hidden;
+}
+.ps4-video-embed.embed-responsive::before{
+	display:block;
+	content:"";
+	padding-top:56.25%;
+}
+.ps4-video-embed .embed-responsive-item{
+	position:absolute;
+	top:0; left:0;
+	bottom:0; right:0;
+	width:100%;
+	height:100%;
+}
+
+/* ---- Piège à robots (formulaire de commentaire) : invisible pour un humain ---- */
+.ps4-honeypot{
+	position:absolute !important;
+	left:-9999px !important;
+	width:1px; height:1px;
+	overflow:hidden;
+}
+
+/* ---- Lecteur PDF intégré ---- */
+.ps4-pdf-embed{
+	margin:22px 0;
+	border:1px solid var(--ps4-blue-dark);
+	border-radius:6px;
+	overflow:hidden;
+	box-shadow:0 0 20px rgba(0,114,206,.35);
+	background:var(--ps4-bg-deep);
+}
+.ps4-pdf-embed iframe{
+	display:block;
+	width:100%;
+	height:80vh;
+	min-height:500px;
+	border:0;
+	background:#fff;
+}
+/* Version agrandie utilisée sur les pages en pleine largeur (sans sidebar) */
+.ps4-pdf-embed-large iframe{
+	height:88vh;
+	min-height:750px;
+}
+.ps4-pdf-embed:fullscreen iframe,
+.ps4-pdf-embed:-webkit-full-screen iframe{
+	height:100vh;
+}
+.ps4-pdf-toolbar{
+	display:flex;
+	gap:10px;
+	flex-wrap:wrap;
+	margin:18px 0 0;
+}
+.ps4-pdf-fallback{
+	font-size:13px;
+	color:#7d93b3;
+	margin-top:8px;
+}
+
+/* ---- Pager simple (pages de tutoriels) ---- */
+.ps4-pager{
+	display:flex;
+	gap:10px;
+	justify-content:center;
+	margin-top:36px;
+}
+.ps4-pager-current{
+	opacity:.6;
+	pointer-events:none;
+	box-shadow:none !important;
+}
+
+/* ---- Petit rappel : projet non officiel, pas de scanlines exagérées ---- */

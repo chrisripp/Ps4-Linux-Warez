@@ -1,0 +1,128 @@
+ls -l /dev/zram*
+Si tu as /dev/zram0, tu peux directement l’utiliser :
+
+bash
+Copier le code
+echo 2G | sudo tee /sys/block/zram0/disksize
+sudo mkswap /dev/zram0
+sudo swapon /dev/zram0
+
+swapon --show
+
+Tu devrais voir une ligne comme :
+
+NAME       TYPE  SIZE   USED PRIO
+/dev/zram0 zram  2G     0B   100
+
+
+Vérifier l’utilisation mémoire
+
+free -h
+
+
+➡️ Tu verras une ligne Swap: avec 2G (ou la taille que tu as donnée).
+
+Statistiques spécifiques à zram
+
+cat /sys/block/zram0/mem_used_total
+cat /sys/block/zram0/compr_data_size
+cat /sys/block/zram0/orig_data_size
+
+
+mem_used_total = RAM réellement utilisée.
+
+compr_data_size = taille compressée.
+
+orig_data_size = taille "réelle" des données.
+
+Ça permet de voir le taux de compression.
+
+Forcer un peu de swap (juste pour tester, à ne pas laisser activé longtemps si tu tiens à tes perfs) :
+
+stress --vm 2 --vm-bytes 6G --timeout 30s
+
+
+(pour lancer un programme qui alloue plein de RAM → ça force le système à utiliser le swap)
+
+Puis refais :
+
+swapon --show
+cat /sys/block/zram0/compr_data_size
+
+
+Statistiques détaillées
+
+cat /sys/block/zram0/stat
+
+
+Ça donne toutes les infos (pages échangées, compression, erreurs).
+
+Quelle taille choisir pour zram sur ta PS4 ?
+
+Ta PS4 a 8 Go de RAM.
+Quelques bonnes pratiques :
+
+Taille zram = 25% à 50% de ta RAM physique est généralement un bon compromis.
+
+Avec 8 Go, ça donne entre 2 Go et 4 Go.
+
+Plus grand = plus de compression mais aussi plus de CPU utilisé (zram consomme un peu de CPU pour compresser/décompresser).
+
+Si tu as déjà un fichier swap sur disque (/swapfile 8G), un zram de 2G suffit largement pour absorber les petits débordements sans taper le disque.
+
+👉 Je te conseille 2 Go ou 3 Go max sur ta PS4.
+
+⚙️ Script systemd pour configurer zram
+
+Crée un fichier de service :
+
+sudo nano /etc/systemd/system/zram-swap.service
+
+
+Colle ceci :
+
+[Unit]
+Description=ZRAM Swap
+DefaultDependencies=no
+After=swap.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/setup-zram.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+
+Script /usr/local/bin/setup-zram.sh
+#!/bin/bash
+# Taille zram (ici 2 Go)
+SIZE=2G
+
+# Ajoute un périphérique zram
+echo 1 > /sys/class/zram-control/hot_add
+
+# Configure la taille
+echo $SIZE > /sys/block/zram0/disksize
+
+# Initialise et active le swap
+mkswap /dev/zram0
+swapon /dev/zram0
+
+Installer et activer
+
+Sauvegarder le script et lui donner les droits d’exécution :
+
+sudo chmod +x /usr/local/bin/setup-zram.sh
+
+
+Recharger systemd et activer le service :
+
+sudo systemctl daemon-reload
+sudo systemctl enable zram-swap
+sudo systemctl start zram-swap
+
+
+Vérifier :
+
+swapon --show

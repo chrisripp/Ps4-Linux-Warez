@@ -1,0 +1,160 @@
+                          Optimisation kernel 6.15.4
+=======================================================================   
+ Pourquoi le kernel 6.x est plus lent sur PS4 ?
+=======================================================================
+Le kernel 6.x a subi des changements qui pénalisent beaucoup de GPU 
+“exotiques” ou anciens, surtout dans les cas suivants :
+
+(1) Le driver AMD (amdgpu) du kernel 6.x n’est pas adapté pour la PS4
+
+La PS4 utilise un GPU Sea Islands / GCN 1.1 (Liverpool).
+Ce GPU utilise des parties du driver r600 et amdgpu, 
+mais aucune version de Linux ne supporte officiellement ce matériel.
+→ Les kernels 5.15.x fonctionnent mieux car ils ont :
+
+-moins de régressions dans le code GCN1.1
+-un amdgpu plus léger
+-une gestion plus stable du clock, powerplay, fences, etc.
+-Le kernel 6.15.4 est peut-être plus “neuf”, 
+     mais il est moins optimisé pour ce GPU.  
+   
+(2) Régressions de performance dans DRM pour les GPU GCN
+
+Depuis Linux 6.0 → 6.8, plusieurs patchs ont modifié :
+
+-IRQ handling
+-memory barriers
+-power management
+-VM scheduler d’amdgpu
+Ces changements améliorent RDNA / Vega, 
+mais dégradent les vieux GPU GCN
+→ notamment la PS4.   
+
+(3) Le kernel 6.x active plus de protections (spectre, meltdown, retpoline, IBPB, IBRS…)
+
+Ces protections :
+
+-coûtent des cycles CPU
+-affectent Zen / Intel, mais aussi Jaguar (PS4)
+-Sur un petit CPU Jaguar 1.6 GHz, chaque sécurité coûte cher.
+Le 5.15.15 en active moins → donc FPS plus élevés.
+
+Heaven score:
+5.15.15 = 1200 points
+6.15.4 = ~965 points
+
+======================================================================
+Sur Jaguar, ça peut donner +20 à +40 % dans certains benchmarks.
+======================================================================
+
+Comment compiler en FULL et THIN LTO:
+
+Selon les system linux, utilisé, menuconfig a besoin de pointer sur LLVM,
+sinon il ne vous affiche pas les options LTO, vous aurez simplement 
+NONE
+
+Pour activer ces fonctions vous devez lancer menuconfig avec cette commande:
+
+make LLVM=1 menuconfig.
+
+Un exemple d'optimisation que j'utilise, pour compiler avec le cpu Jaguars de la ps4:
+
+
+
+# Optimized PS4 (Jaguar / btver2) kernel .config
+# Base:.config (6.15.4-WiFi-Blackscreen-Fix), customized by Triki1
+# Edited fragment: enable Full LTO, enable amdgpu SI/CIK, disable major mitigations,
+#                 add a PS4-specific build/boot flags hint.
+
+CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y
+CONFIG_LTO=y
+CONFIG_LTO_CLANG=y
+CONFIG_LTO_CLANG_FULL=y
+CONFIG_LTO_CLANG_THIN=n
+CONFIG_DRM_AMDGPU=y
+CONFIG_DRM_AMDGPU_CIK=y
+CONFIG_DRM_AMDGPU_SI=y
+CONFIG_DRM_AMDGPU_USERPTR=y
+
+# Disable heavy mitigations to improve performance on Jaguar (PS4)
+# (These reduce security but significantly increase throughput on Jaguar)
+# If you need them later, re-enable individually.
+# Note: disabling mitigations lowers protection against Spectre/Meltdown classes.
+# Use at your own risk.
+#
+# The following CONFIG_* keys are explicitly unset below.
+#
+# CONFIG_PAGE_TABLE_ISOLATION is not set
+# CONFIG_MITIGATION_RETPOLINE is not set
+# CONFIG_MITIGATION_RETBLEED is not set
+# CONFIG_MITIGATION_SPECTRE_V1 is not set
+# CONFIG_MITIGATION_SPECTRE_V2 is not set
+# CONFIG_MITIGATION_SSB is not set
+# CONFIG_MITIGATION_RETHUNK is not set
+# CONFIG_MITIGATION_IBPB_ENTRY is not set
+# CONFIG_RETPOLINE is not set
+# CONFIG_SPECTRE_V1 is not set
+# CONFIG_SPECTRE_V2 is not set
+
+# Reduce debug (smaller, faster kernel)
+# CONFIG_DEBUG_INFO is not set
+# CONFIG_DEBUG_INFO_BTF is not set
+# CONFIG_DEBUG_INFO_REDUCED is not set
+
+# Prefer Jaguar-specific tuning (note: some distributions may require passing
+# -march/-mtune via KCFLAGS or exporting ARCH/x86 flags to the build environment.)
+# Add these flags to your build command or environment when running 'make':
+# export  KCFLAGS="-march=btver2 -mtune=btver2 -O3 -fomit-frame-pointer -flto -mno-sse4a -mno-xop -mno-tbm -pipe" \
+
+# Bootargs recommended for PS4 (add to your bootargs.txt or bootloader):
+ amdgpu.gttsize=2048 amdgpu.vm_fragment_size=9 amdgpu.dc=0 amdgpu.pcie_gen2=1 amdgpu.aspm=0 amdgpu.dpm=1 amdgpu.deep_color=0 amdgpu.gpu_recovery=0 radeon.si_support=0 amdgpu.si_support=1 amdgpu.cik_support=1 mitigations=off nopti spectre_v2=off spectre_v2_user=off spec_store_bypass_disable=off noibpb noibrs ibt=off processor.max_cstate=1 idle=nomwait amdgpu.lockup_timeout=10000 drm.edid_firmware=edid/1920x1080.bin
+
+# Minimal CPU target hint (some build systems honour these):
+CONFIG_GENERIC_CPU=n
+
+# --- The remainder of this file is taken from your original .config ---
+                       
+Pour Jaguard contrairement au 5.x, vous ne pourrez pas le choisir dans les
+options de menuconfig. Tout se passe a la compilation en appelant : 
+-march=btver2 -mtune=btver2 .
+
+========================================================================
+                            LA COMPILAION
+========================================================================   
+
+Compiler en Full LTO prends beaucoup de ram, si vous pocéder un :
+i3 16G de ram, il y a une chance sur deux, pour que le PC FREEZE.  
+Pour palier cela j'ai créer 2 scripts que je vous fournirai et qui,
+vous permet de compiler en FULL_LTO avec un i3 16G de RAM.
+Pour les experts voic la commande a utiliser pour compiler en 
+                      FULL_LTO et THIN_LTO     
+
+make -j$JOBS \
+    LLVM=1 \
+    KCFLAGS="-march=btver2 -mtune=btver2 -O3 -fomit-frame-pointer -flto -mno-sse4a -mno-xop -mno-tbm -pipe" \
+    CC=clang \
+    LD=ld.lld \
+    AR=llvm-ar \
+    NM=llvm-nm \
+    STRIP=llvm-strip \
+    OBJCOPY=llvm-objcopy \
+    OBJDUMP=llvm-objdump \
+    READELF=llvm-readelf \
+    HOSTCC=clang \
+    HOSTCXX=clang++ \
+    HOSTAR=llvm-ar \
+    HOSTLD=ld.lld                                       
+ 
+ Les scripts lancer: compile-i3-fulllto-v2.sh 
+et dans un autre terminal monitor-compilation.sh
+
+Une fois votre bzImage compilé, lancer votre ps4 linux:
+Copier/Coller votre bzImage dans /boot
+Lancer ce script:  ps4-kernel-complete-analyzer.sh
+Pour avoir toutes les informations de votre kernel.                       
+
+Vous pouvez encore optimiser, en recompilant votre mesa pour Jaguard
+voici ma ligne de commande actuelle:
+    COMPILERFLAGS_OPT = f"-pipe -march=btver2 -mtune=btver2 -O3 -mfpmath=sse -ftree-vectorize -flto -flto={nproc} -g0 -fno-semantic-interposition"
+
+regardons ensemble avec une vidéo:

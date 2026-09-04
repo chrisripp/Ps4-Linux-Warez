@@ -1,0 +1,8 @@
+patch -p1 --dry-run <[fichier-patch] (pour tester)
+patch -p1 < [fichier_de_patch] (pour installer)
+patch -R < [fichier_de_patch] (pour enlever un patch)
+
+
+créer un diff
+diff -Naur drm drm-patch > mon-patch.patch
+

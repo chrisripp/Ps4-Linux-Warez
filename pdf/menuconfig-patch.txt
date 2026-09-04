@@ -1,0 +1,69 @@
+Hello Crashniels, I'm taking advantage of this little tutorial to thank you.
+Your GitHub ps4Kernel is amazing. Very Good Job !!!
+
+https://github.com/crashniels/linux
+
+How to compile sources? How to place patches?
+
+If you are interested, follow me.
+-----------------------------------------------------
+
+First we will clone the branch we are interested in, 
+let's take the latest kernel 6.15.y
+First we clone the git and then we go to the branch. 
+So we will use two commands
+
+1 git clone https://github.com/crashniels/linux.git
+2 git checkout ps4-linux-6.15.y (you can change the branch for example 6.12.y, 5.15.y etc)
+
+Our source is ready, we enter the source of our freshly cloned kernel
+We'll copy the config on .config files. 
+We'll need them to use make menuconfig.
+
+inside your kernel folder source :
+3 cp config .config
+
+Now we launch make menuconfig
+4 make menuconfig
+
+You move with the arrows, you select a choice with the space bar. 
+You use the Enter key to validate. To search for a term, 
+a module or other, use the / key. 
+The help button helps you to know your option 
+and understand how it works.
+Fot example you want to add zram
+
+Let's try it, we will compile kernel 6.15.y directly
+5 save and exit
+then
+6 make -j$(nproc)
+
+we will find our image in the file:
+/k6.15.y/arch/x86/boot/bzlmage
+
+-------------------------------------------------------------
+To patch a kernel, first find the patches.
+Here we'll use some CachyOS patches.
+
+Two commands to use, the first to test the patch, 
+to see if it will apply correctly.
+1 patch -p1 --dry-run < patch
+
+If everything is good enough, we apply
+2 patch -p1 < patch 
+
+To remove a patch
+patch -R < patch
+save .config & Exist
+
+Here we go, let's show you. Don't worry, 
+I'll post this .txt file for all the commands.
+Feel free to report bugs and other issues on the Crashniels GitHub.
+
+triki1
+
+That all easy no?
+after that you can add some module like zram, and you need to test it !!!
+bye
+Chrashniels gives us the base kernel, it's up to you to modify it and test it. So, we have to take it slow.
+In the next video, I'll show you the kernel module I created for ps4fancontrol.

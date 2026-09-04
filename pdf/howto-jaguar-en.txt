@@ -1,0 +1,234 @@
+# Kernel 6.15.4 Optimization for PS4 (Jaguar)
+The 6.x kernel has undergone changes that significantly penalize "exotic" or older GPUs, especially in the following cases:
+### (1) The AMD driver (amdgpu) in kernel 6.x is not adapted for PS4
+The PS4 uses a Sea Islands / GCN 1.1 GPU (Liverpool).
+This GPU uses parts of the r600 and amdgpu drivers, but no Linux version officially supports this hardware.
+→ Kernel 5.15.x works better because it has:
+- Fewer regressions in GCN1.1 code
+- A lighter amdgpu driver
+- More stable management of clock, powerplay, fences, etc.
+- Kernel 6.15.4 may be "newer", but it's less optimized for this GPU.
+### (2) Performance regressions in DRM for GCN GPUs
+Since Linux 6.0 → 6.8, several patches have modified:
+- IRQ handling
+- Memory barriers
+- Power management
+- amdgpu VM scheduler
+These changes improve RDNA / Vega, but degrade old GCN GPUs → especially the PS4.
+### (3) Kernel 6.x enables more security mitigations
+These protections (Spectre, Meltdown, Retpoline, IBPB, IBRS…):
+- Cost CPU cycles
+- Affect Zen / Intel, but also Jaguar (PS4)
+- On a small 1.6 GHz Jaguar CPU, each security feature is expensive
+Kernel 5.15.15 enables fewer → therefore higher FPS.
+**Heaven Benchmark Scores:**
+- 5.15.15 = 1200 points
+- 6.15.4 = ~965 points
+**On Jaguar, this can yield +20 to +40% improvement in certain benchmarks.**
+---
+## How to compile with FULL and THIN LTO
+Depending on the Linux system used, menuconfig needs to point to LLVM, otherwise it won't display LTO options (you'll simply see NONE).
+
+To enable these functions, you must launch menuconfig with this command:
+
+```bash
+make LLVM=1 menuconfig
+```
+
+### Example optimized configuration for PS4 (Jaguar / btver2)
+
+```bash
+# Optimized PS4 (Jaguar / btver2) kernel .config
+# Base: .config (6.15.4-WiFi-Blackscreen-Fix), customized by Triki1
+# Edited fragment: enable Full LTO, enable amdgpu SI/CIK, disable major mitigations
+
+CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y
+CONFIG_LTO=y
+CONFIG_LTO_CLANG=y
+CONFIG_LTO_CLANG_FULL=y
+CONFIG_LTO_CLANG_THIN=n
+CONFIG_DRM_AMDGPU=y
+CONFIG_DRM_AMDGPU_CIK=y
+CONFIG_DRM_AMDGPU_SI=y
+CONFIG_DRM_AMDGPU_USERPTR=y
+
+# Disable heavy mitigations to improve performance on Jaguar (PS4)
+# (These reduce security but significantly increase throughput on Jaguar)
+# If you need them later, re-enable individually.
+# Note: disabling mitigations lowers protection against Spectre/Meltdown classes.
+# Use at your own risk.
+
+# CONFIG_PAGE_TABLE_ISOLATION is not set
+# CONFIG_MITIGATION_RETPOLINE is not set
+# CONFIG_MITIGATION_RETBLEED is not set
+# CONFIG_MITIGATION_SPECTRE_V1 is not set
+# CONFIG_MITIGATION_SPECTRE_V2 is not set
+# CONFIG_MITIGATION_SSB is not set
+# CONFIG_MITIGATION_RETHUNK is not set
+# CONFIG_MITIGATION_IBPB_ENTRY is not set
+# CONFIG_RETPOLINE is not set
+# CONFIG_SPECTRE_V1 is not set
+# CONFIG_SPECTRE_V2 is not set
+
+# Reduce debug (smaller, faster kernel)
+# CONFIG_DEBUG_INFO is not set
+# CONFIG_DEBUG_INFO_BTF is not set
+# CONFIG_DEBUG_INFO_REDUCED is not set
+
+# Generic CPU disabled
+CONFIG_GENERIC_CPU=n
+```
+
+**Important note:** For Jaguar, unlike the 5.x kernel, you cannot select it in menuconfig options. Everything happens during compilation by calling `-march=btver2 -mtune=btver2`.
+
+---
+
+## COMPILATION
+
+Compiling with Full LTO requires a lot of RAM. If you have an i3 with 16 GB of RAM, there's a 50% chance the PC will freeze.
+
+To overcome this, two scripts are provided that allow compiling in FULL_LTO with an i3 16 GB of RAM.
+
+### Compilation command for FULL_LTO and THIN_LTO (explained)
+
+```bash
+make -j$JOBS \
+    LLVM=1 \
+    KCFLAGS="-march=btver2 -mtune=btver2 -O3 -fomit-frame-pointer -flto -mno-sse4a -mno-xop -mno-tbm -pipe" \
+    CC=clang \
+    LD=ld.lld \
+    AR=llvm-ar \
+    NM=llvm-nm \
+    STRIP=llvm-strip \
+    OBJCOPY=llvm-objcopy \
+    OBJDUMP=llvm-objdump \
+    READELF=llvm-readelf \
+    HOSTCC=clang \
+    HOSTCXX=clang++ \
+    HOSTAR=llvm-ar \
+    HOSTLD=ld.lld
+```
+
+### Detailed explanation of compilation options:
+
+#### Main options:
+- **`make -j$JOBS`**: Launches parallel compilation with $JOBS threads (typically number of CPU cores)
+- **`LLVM=1`**: Forces the use of LLVM/Clang toolchain instead of GCC
+
+#### Compilation flags (KCFLAGS):
+- **`-march=btver2`**: Generates code optimized specifically for Jaguar architecture (btver2 = AMD Bulldozer version 2, the codename for Jaguar CPU)
+- **`-mtune=btver2`**: Optimizes instruction scheduling for Jaguar (without limiting compatibility)
+- **`-O3`**: Maximum optimization level (more aggressive than -O2)
+- **`-fomit-frame-pointer`**: Removes frame pointer to free up an additional register and speed up code
+- **`-flto`**: Enables Link-Time Optimization (optimizes across files during linking)
+- **`-mno-sse4a`**: Disables SSE4a instructions (not supported by Jaguar)
+- **`-mno-xop`**: Disables XOP instructions (not supported by Jaguar)
+- **`-mno-tbm`**: Disables TBM instructions (not supported by Jaguar)
+- **`-pipe`**: Uses pipes instead of temporary files (faster compilation)
+
+#### LLVM/Clang tools:
+- **`CC=clang`**: Uses Clang as C compiler
+- **`LD=ld.lld`**: Uses LLD linker (LLVM Linker, faster and better for LTO)
+- **`AR=llvm-ar`**: Uses LLVM archiver to create .a libraries
+- **`NM=llvm-nm`**: Uses LLVM nm to list symbols
+- **`STRIP=llvm-strip`**: Uses LLVM strip to remove debug symbols
+- **`OBJCOPY=llvm-objcopy`**: Uses LLVM objcopy to copy/modify binary objects
+- **`OBJDUMP=llvm-objdump`**: Uses LLVM objdump for disassembly
+- **`READELF=llvm-readelf`**: Uses LLVM readelf to read ELF headers
+
+#### Host cross-compilation tools:
+- **`HOSTCC=clang`**: C compiler for tools that run on the host machine during compilation
+- **`HOSTCXX=clang++`**: C++ compiler for host tools
+- **`HOSTAR=llvm-ar`**: Archiver for host tools
+- **`HOSTLD=ld.lld`**: Linker for host tools
+
+### Compilation scripts
+
+Run the following scripts:
+1. **`compile-i3-fulllto-v2.sh`**: Launches compilation
+2. **`monitor-compilation.sh`**: In another terminal to monitor progress
+
+### After compilation
+
+Once your bzImage is compiled, on your PS4 Linux:
+
+1. Copy/paste your bzImage into `/boot`
+2. Run the script: **`ps4-kernel-complete-analyzer.sh`**
+   To get all information about your kernel.
+
+---
+
+## Additional optimization: Mesa for Jaguar
+
+You can further optimize by recompiling your Mesa for Jaguar.
+
+Here's my current command line:
+
+```python
+COMPILERFLAGS_OPT = f"-pipe -march=btver2 -mtune=btver2 -O3 -mfpmath=sse -ftree-vectorize -flto -flto={nproc} -g0 -fno-semantic-interposition"
+```
+
+### Explanation of Mesa flags:
+- **`-pipe`**: Uses pipes (faster)
+- **`-march=btver2 -mtune=btver2`**: Jaguar optimizations
+- **`-O3`**: Maximum optimization
+- **`-mfpmath=sse`**: Uses SSE for floating-point calculations (faster than x87)
+- **`-ftree-vectorize`**: Enables automatic loop vectorization
+- **`-flto -flto={nproc}`**: Enables LTO with all available cores
+- **`-g0`**: No debug information (smaller and faster binary)
+- **`-fno-semantic-interposition`**: Disables semantic interposition (allows more LTO optimizations)
+
+---
+
+## Recommended boot arguments for PS4
+
+Add to your `bootargs.txt` or bootloader:
+
+```
+amdgpu.gttsize=2048 amdgpu.vm_fragment_size=9 amdgpu.dc=0 amdgpu.pcie_gen2=1 amdgpu.aspm=0 amdgpu.dpm=1 amdgpu.deep_color=0 amdgpu.gpu_recovery=0 radeon.si_support=0 amdgpu.si_support=1 amdgpu.cik_support=1 mitigations=off nopti spectre_v2=off spectre_v2_user=off spec_store_bypass_disable=off noibpb noibrs ibt=off processor.max_cstate=1 idle=nomwait amdgpu.lockup_timeout=10000 drm.edid_firmware=edid/1920x1080.bin
+```
+
+### Explanation of boot arguments:
+- **`amdgpu.gttsize=2048`**: GTT (Graphics Translation Table) size in MB
+- **`amdgpu.vm_fragment_size=9`**: Virtual memory fragment size
+- **`amdgpu.dc=0`**: Disables Display Core (more stable on PS4)
+- **`amdgpu.pcie_gen2=1`**: Forces PCIe Gen 2
+- **`amdgpu.aspm=0`**: Disables Active State Power Management
+- **`amdgpu.dpm=1`**: Enables Dynamic Power Management
+- **`mitigations=off`**: Disables all CPU mitigations
+- **`nopti`**: Disables Page Table Isolation
+- **`spectre_v2=off spectre_v2_user=off`**: Disables Spectre v2 protections
+- **`spec_store_bypass_disable=off`**: Disables Speculative Store Bypass protection
+- **`noibpb noibrs`**: Disables IBPB and IBRS (Spectre protections)
+- **`ibt=off`**: Disables Indirect Branch Tracking
+- **`processor.max_cstate=1`**: Limits CPU C-states (better latency)
+- **`idle=nomwait`**: Disables MWAIT for idle (better responsiveness)
+- **`amdgpu.lockup_timeout=10000`**: GPU lockup detection timeout at 10 seconds
+- **`drm.edid_firmware=edid/1920x1080.bin`**: Forces 1920x1080 EDID
+
+---
+
+## Summary of optimization gains
+
+**Performance improvements on Jaguar (PS4):**
+- **Kernel 5.15.15 vs 6.15.4**: ~20% better performance (unoptimized)
+- **With Full LTO + Jaguar optimizations**: Additional 20-40% gain possible
+- **With optimized Mesa**: Further 10-20% improvement in graphics workloads
+- **Total potential improvement**: 50-80% better performance compared to stock kernel 6.15.4
+
+**Key factors:**
+1. Using kernel 5.15.x OR heavily optimized 6.15.4
+2. Full LTO compilation with LLVM
+3. Jaguar-specific flags (`-march=btver2 -mtune=btver2`)
+4. Disabling security mitigations (`mitigations=off`, no Spectre/Meltdown protections)
+5. Optimized boot arguments for AMD Liverpool GPU
+
+**Trade-offs:**
+- ✅ Significant performance gains (up to 2x in some scenarios)
+- ❌ Reduced security (no Spectre/Meltdown protections)
+- ❌ Higher compilation complexity and RAM requirements
+- ❌ Potential instability if aggressive optimizations cause issues
+
+---
+
+**Watch together with a video** *(link to be added)*

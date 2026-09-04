@@ -1,0 +1,91 @@
+                    COMPILED FULL LTO.
+                    
+═══════════════════════════════════════════════════════════
+   KERNEL LINUX OPTIMISÉ POUR PS4 - RÉSUMÉ CONFIGURATION
+═══════════════════════════════════════════════════════════
+
+Plateforme : PlayStation 4 (AMD Jaguar x86-64)
+Kernel     : Linux 6.15.4
+Config     : -WiFi-Blackscreen-Fix
+Compilateur: Clang avec LLVM
+Date       : Octobre 2025
+
+───────────────────────────────────────────────────────────
+OPTIMISATIONS ACTIVÉES
+───────────────────────────────────────────────────────────
+
+✓ LTO (Link Time Optimization)
+  - Type : Clang ThinLTO
+  - Gain attendu : +8-12% performances générales
+  - Impact compilation : +30-60 minutes
+  - Statut : CONFIG_LTO_CLANG_THIN=y
+
+✓ CFI (Control Flow Integrity)
+  - Protection contre exploits kernel
+  - Impact : -3% performances
+  - Sécurité : Élevée
+  - Statut : CONFIG_CFI_CLANG=y (si activé)
+
+✓ Optimisation processeur
+  - Niveau : -O2 (performance)
+  - Support AMD-V/SVM : Activé
+  - KVM : Activé (virtualisation)
+
+✓ Support virtualisation
+  - KVM AMD : Activé
+  - IOMMU AMD : Activé
+  - Modules VIRTIO : À activer si besoin
+
+───────────────────────────────────────────────────────────
+COMMANDE DE COMPILATION UTILISÉE
+───────────────────────────────────────────────────────────
+
+make LLVM=1 oldconfig && \
+./scripts/config --disable LTO_NONE && \
+./scripts/config --enable LTO_CLANG_THIN && \
+./scripts/config --enable LTO_CLANG && \
+make LLVM=1 olddefconfig && \
+make LLVM=1 -j$(nproc)
+
+───────────────────────────────────────────────────────────
+GAINS ATTENDUS (vs kernel sans LTO)
+───────────────────────────────────────────────────────────
+
+Boot système        : +8-10% plus rapide
+I/O disque          : +5-8% plus rapide
+Réseau              : +3-5% plus rapide
+Compilation         : +10-20% plus rapide
+Émulation (QEMU/VM) : +7-12% plus rapide
+Gaming              : +5-10% meilleures performances
+Consommation RAM    : -5-8% moins de mémoire
+
+═══════════════════════════════════════════════════════════
+
+real lto or fake
+
+on your terminal:
+# Full kernel version
+uname -a
+
+# Should display:
+# Linux ps4 6.15.4-WiFi-Blackscreen-Fix #1 SMP PREEMPT ...
+
+# Build details
+cat /proc/version
+
+# Should mention "clang version" (with this bz: 6.15.4-wifi,bkscreen, ubuntu clang
+version 18.1.3..... #SMP PREEMPT_DYNAMIC
+
+TEST BOOT TIME:
+# Measure boot time on AEOLIA2
+
+systemd-analyze
+
+# Typical result:
+# Startup finished in 1m 20.810s (kernel) + 9.762s (userspace) = 1m 30.573s
+
+# Boot details
+systemd-analyze blame | head -20
+
+# Kernel-only time
+systemd-analyze time

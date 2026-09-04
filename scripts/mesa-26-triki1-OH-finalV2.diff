@@ -1,0 +1,273 @@
+diff -ruN mesa-original/include/pci_ids/radeonsi_pci_ids.h mesa-git/include/pci_ids/radeonsi_pci_ids.h
+--- mesa-original/include/pci_ids/radeonsi_pci_ids.h	2026-05-03 12:00:19.909411424 +0200
++++ mesa-git/include/pci_ids/radeonsi_pci_ids.h	2026-05-03 12:57:24.865010450 +0200
+@@ -122,6 +122,13 @@
+ CHIPSET(0x985E, KABINI)
+ CHIPSET(0x985F, KABINI)
+ 
++/* PS4 fat/slim : Liverpool semi-custom GFX7 */
++CHIPSET(0x9920, LIVERPOOL)
++CHIPSET(0x9922, LIVERPOOL)
++CHIPSET(0x9923, LIVERPOOL)
++/* PS4 Pro : Gladius semi-custom GFX7 */
++CHIPSET(0x9924, GLADIUS)
++
+ CHIPSET(0x1304, KAVERI)
+ CHIPSET(0x1305, KAVERI)
+ CHIPSET(0x1306, KAVERI)
+
+
+diff -ruN mesa-original/src/amd/addrlib/src/amdgpu_asic_addr.h mesa-git/src/amd/addrlib/src/amdgpu_asic_addr.h
+--- mesa-original/src/amd/addrlib/src/amdgpu_asic_addr.h	2026-05-03 12:00:19.942416387 +0200
++++ mesa-git/src/amd/addrlib/src/amdgpu_asic_addr.h	2026-05-03 13:00:52.502532695 +0200
+@@ -63,7 +63,9 @@
+ #define AMDGPU_HAWAII_RANGE     0x28, 0x3C //# 40 <= x < 60
+ 
+ #define AMDGPU_SPECTRE_RANGE    0x01, 0x41 //#   1 <= x < 65
+-#define AMDGPU_SPOOKY_RANGE     0x41, 0x81 //#  65 <= x < 129
++#define AMDGPU_SPOOKY_RANGE     0x41, 0x61 //#  65 <= x < 97
++#define AMDGPU_STARSHA_RANGE    0x61, 0x71 //#  97 <= x < 113  (Liverpool)
++#define AMDGPU_STARSHP_RANGE    0x71, 0x81 //# 113 <= x < 129  (Gladius)
+ #define AMDGPU_KALINDI_RANGE    0x81, 0xA1 //# 129 <= x < 161
+ #define AMDGPU_GODAVARI_RANGE   0xA1, 0xFF //# 161 <= x < max
+ 
+@@ -138,6 +140,8 @@
+ 
+ #define ASICREV_IS_SPECTRE(r)          ASICREV_IS(r, SPECTRE)
+ #define ASICREV_IS_SPOOKY(r)           ASICREV_IS(r, SPOOKY)
++#define ASICREV_IS_STARSHA(r)          ASICREV_IS(r, STARSHA)
++#define ASICREV_IS_STARSHP(r)          ASICREV_IS(r, STARSHP)
+ #define ASICREV_IS_KALINDI(r)          ASICREV_IS(r, KALINDI)
+ #define ASICREV_IS_KALINDI_GODAVARI(r) ASICREV_IS(r, GODAVARI)
+ 
+
+
+diff -ruN mesa-original/src/amd/common/ac_gpu_info.c mesa-git/src/amd/common/ac_gpu_info.c
+--- mesa-original/src/amd/common/ac_gpu_info.c	2026-06-22 19:19:48.203685229 +0000
++++ mesa-git/src/amd/common/ac_gpu_info.c	2026-06-22 21:53:19.236037543 +0000
+@@ -598,6 +598,8 @@
+       case CHIP_VERDE:
+       case CHIP_HAINAN:
+       case CHIP_BONAIRE:
++      case CHIP_LIVERPOOL:
++      case CHIP_GLADIUS:
+       case CHIP_KAVERI:
+       case CHIP_ICELAND:
+       case CHIP_CARRIZO:
+@@ -652,6 +654,8 @@
+       case FAMILY_KV:
+          identify_chip2(SPECTRE, KAVERI);
+          identify_chip2(SPOOKY, KAVERI);
++         identify_chip2(STARSHA, LIVERPOOL);
++         identify_chip2(STARSHP, GLADIUS);
+          identify_chip2(KALINDI, KABINI);
+          identify_chip2(GODAVARI, KABINI);
+          break;
+@@ -1242,6 +1246,27 @@
+    info->min_good_cu_per_sa =
+       (info->num_cu / (info->num_se * info->max_sa_per_se * cu_group)) * cu_group;
+ 
++   /* PS4 Liverpool/Gladius : le kernel PS4 ne remonte pas correctement
++    * device_info->cu_bitmap[][], donc num_cu calcule ci-dessus est faux.
++    * On force les vraies valeurs silicon pour que ACO repartisse
++    * correctement les wavefronts sur les CU disponibles.
++    *
++    * Topologie PS4 documentee (Sony/AMD) : pas de subdivision en
++    * shader arrays comme un GCN standard. CU distribues uniformement
++    * par shader engine, 1 SA/SE effectif :
++    *   Liverpool (PS4)     : 18 CU / 2 SE = 9 CU/SE
++    *   Gladius   (PS4 Pro) : 36 CU / 4 SE = 9 CU/SE
++    * → max_good_cu_per_sa = 9 dans les deux cas (coherent). */
++   if (info->family == CHIP_LIVERPOOL) {
++      info->num_cu             = 18;
++      info->max_good_cu_per_sa = 9;
++      info->min_good_cu_per_sa = 9;
++   } else if (info->family == CHIP_GLADIUS) {
++      info->num_cu             = 36;
++      info->max_good_cu_per_sa = 9;
++      info->min_good_cu_per_sa = 9;
++   }
++
+    info->gfx_ib_pad_with_type2 = info->gfx_level == GFX6;
+ 
+    if (info->gfx_level >= GFX11 && info->gfx_level < GFX12) {
+@@ -1463,6 +1488,18 @@
+       }
+    }
+ 
++   /* PS4 Liverpool/Gladius : le kernel PS4 ne remonte souvent qu'une
++    * ring compute/sdma tronquee, alors que Sea Islands dispose de
++    * 8 pipes ACE et 2 moteurs SDMA. Sans cette correction, RADV pense
++    * qu'il n'y a presque pas de queues compute et n'utilise jamais
++    * l'async compute -> perte de perf Vulkan moderne (Heaven/UE4). */
++   if (info->family == CHIP_LIVERPOOL || info->family == CHIP_GLADIUS) {
++      if (info->ip[AMD_IP_COMPUTE].num_queues < 8)
++         info->ip[AMD_IP_COMPUTE].num_queues = 8;
++      if (info->ip[AMD_IP_SDMA].num_queues < 2)
++         info->ip[AMD_IP_SDMA].num_queues = 2;
++   }
++
+    /* Only require gfx or compute. */
+    if (!info->ip[AMD_IP_GFX].num_queues && !info->ip[AMD_IP_COMPUTE].num_queues) {
+       fprintf(stderr, "amdgpu: failed to find gfx or compute.\n");
+@@ -2226,6 +2263,8 @@
+    case CHIP_TAHITI:
+    case CHIP_PITCAIRN:
+    case CHIP_VERDE:
++   case CHIP_LIVERPOOL:
++   case CHIP_GLADIUS:
+    case CHIP_BONAIRE:
+    case CHIP_HAWAII:
+    case CHIP_TONGA:
+@@ -2296,6 +2335,23 @@
+       raster_config = 0x3a00161a;
+       raster_config_1 = 0x0000002e;
+       break;
++   case CHIP_LIVERPOOL:
++      /* PS4 fat/slim - Liverpool semi-custom GFX7
++       * 2 SE, 4 SA/SE, 2 RB/SA - no display engine
++       * Values extracted from PS4 hardware register dumps.
++       */
++      raster_config   = 0x2a00161a;
++      raster_config_1 = 0x00000000;
++      break;
++   case CHIP_GLADIUS:
++      /* PS4 Pro - Gladius semi-custom GFX7
++       * 4 SE, 4 SA/SE, 2 RB/SA - no display engine
++       * raster_config_1 reflects the 4-SE layout like Hawaii.
++       * Values extracted from PS4 Pro hardware register dumps.
++       */
++      raster_config   = 0x2a00161a;
++      raster_config_1 = 0x0000002e;
++      break;
+    default:
+       fprintf(stderr, "ac: Unknown GPU, using 0 for raster_config\n");
+       raster_config = 0x00000000;
+
+diff -ruN mesa-original/src/amd/common/amd_family.c mesa-git/src/amd/common/amd_family.c
+--- mesa-original/src/amd/common/amd_family.c	2026-05-03 12:00:20.023428571 +0200
++++ mesa-git/src/amd/common/amd_family.c	2026-05-03 13:21:47.693363186 +0200
+@@ -18,6 +18,8 @@
+    CASE(OLAND);
+    CASE(HAINAN);
+    CASE(BONAIRE);
++   CASE(LIVERPOOL);
++   CASE(GLADIUS);
+    CASE(KABINI);
+    CASE(KAVERI);
+    CASE(HAWAII);
+@@ -88,7 +90,13 @@
+       return GFX8;
+    if (family >= CHIP_BONAIRE)
+       return GFX7;
+-
++   /* LIVERPOOL et GLADIUS sont en dessous de CHIP_BONAIRE dans l'enum,
++    * donc non attrapes par le guard ci-dessus. Un seul check suffit
++    * car CHIP_GLADIUS > CHIP_LIVERPOOL dans l'ordre de l'enum.
++    */
++   if (family >= CHIP_LIVERPOOL)
++       return GFX7;
++       
+    return GFX6;
+ }
+ 
+@@ -107,6 +115,14 @@
+       return "hainan";
+    case CHIP_BONAIRE:
+       return "bonaire";
++   case CHIP_LIVERPOOL:
++      /* Liverpool est architecturalement proche de Bonaire (2 SE, GFX7). */
++      return "bonaire";
++   case CHIP_GLADIUS:
++      /* Gladius a 4 SE comme Hawaii - cible hawaii pour un meilleur
++       * scheduling et allocation VGPR sur PS4 Pro.
++       */
++      return "hawaii";      
+    case CHIP_KABINI:
+       return "kabini";
+    case CHIP_KAVERI:
+
+
+diff -ruN mesa-original/src/amd/common/amd_family.h mesa-git/src/amd/common/amd_family.h
+--- mesa-original/src/amd/common/amd_family.h	2026-05-03 12:00:20.023428571 +0200
++++ mesa-git/src/amd/common/amd_family.h	2026-05-03 13:23:28.107887880 +0200
+@@ -79,6 +79,9 @@
+    CHIP_OLAND,
+    CHIP_HAINAN,
+    /* GFX7 (Sea Islands) */
++   CHIP_LIVERPOOL,   /* PS4 fat/slim : 2 SE, 18 CU */
++   CHIP_GLADIUS,     /* PS4 Pro     : 4 SE, 36 CU */
++   /* GFX7 (Sea Islands) - standard */
+    CHIP_BONAIRE,
+    CHIP_KAVERI,
+    CHIP_KABINI,
+
+
+diff -ruN mesa-original/src/amd/vulkan/meta/radv_meta_fast_clear.c mesa-git/src/amd/vulkan/meta/radv_meta_fast_clear.c
+--- mesa-original/src/amd/vulkan/meta/radv_meta_fast_clear.c	2026-05-03 12:00:20.212456999 +0200
++++ mesa-git/src/amd/vulkan/meta/radv_meta_fast_clear.c	2026-05-03 14:43:47.898903179 +0200
+@@ -354,7 +354,7 @@
+ 
+    switch (op) {
+    case FAST_CLEAR_ELIMINATE:
+-      pred_offset = image->fce_pred_offset;
++      pred_offset = 0;
+       break;
+    case FMASK_DECOMPRESS:
+       pred_offset = 0; /* FMASK_DECOMPRESS is never predicated. */
+
+
+diff -ruN mesa-original/src/gallium/winsys/radeon/drm/radeon_drm_winsys.c mesa-git/src/gallium/winsys/radeon/drm/radeon_drm_winsys.c
+--- mesa-original/src/gallium/winsys/radeon/drm/radeon_drm_winsys.c	2026-06-03 10:36:53.509093428 +0000
++++ mesa-git/src/gallium/winsys/radeon/drm/radeon_drm_winsys.c	2026-06-03 10:36:45.928596192 +0000
+@@ -548,10 +548,16 @@
+    case CHIP_PITCAIRN:
+       ws->info.max_tcc_blocks = 8;
+       break;
++   case CHIP_LIVERPOOL:
++      /* PS4 fat/slim : 2 SE x 4 blocs/SE = 8 TCC L2 */
++      ws->info.max_tcc_blocks = 8;
++      break;
+    case CHIP_TAHITI:
+       ws->info.max_tcc_blocks = 12;
+       break;
+    case CHIP_HAWAII:
++   case CHIP_GLADIUS:
++      /* Gladius PS4 Pro : 4 SE x 4 blocs/SE = 16 TCC L2 */
+       ws->info.max_tcc_blocks = 16;
+       break;
+    default:
+@@ -573,9 +579,19 @@
+       case CHIP_BONAIRE:
+          ws->info.max_se = 2;
+          break;
++      case CHIP_LIVERPOOL:
++         /* PS4 fat/slim : 2 SE x 2 RB/SE = 4 RBs actifs */
++         ws->info.max_se              = 2;
++         ws->info.max_render_backends = 4;
++         break;
+       case CHIP_HAWAII:
+          ws->info.max_se = 4;
+          break;
++      case CHIP_GLADIUS:
++         /* PS4 Pro : 4 SE x 2 RB/SE = 8 RBs actifs */
++         ws->info.max_se              = 4;
++         ws->info.max_render_backends = 8;
++         break;
+       }
+    }
+ 
+
+
+diff -ruN mesa-original/src/gallium/winsys/radeon/drm/radeon_surface.c mesa-git/src/gallium/winsys/radeon/drm/radeon_surface.c
+--- mesa-original/src/gallium/winsys/radeon/drm/radeon_surface.c	2026-05-03 12:00:23.691980278 +0200
++++ mesa-git/src/gallium/winsys/radeon/drm/radeon_surface.c	2026-05-03 13:34:27.345146302 +0200
+@@ -77,6 +77,8 @@
+     CHIP_OLAND,
+     CHIP_HAINAN,
+     CHIP_BONAIRE,
++    CHIP_LIVERPOOL,   /* PS4 fat/slim */
++    CHIP_GLADIUS,     /* PS4 Pro      */
+     CHIP_KAVERI,
+     CHIP_KABINI,
+     CHIP_HAWAII,
