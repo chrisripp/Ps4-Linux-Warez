@@ -1925,9 +1925,10 @@ Current sources: <tt>$src</tt>\n" \
         \
         --field="":LBL "" \
         --field="<b><span foreground='${C_SECTION}'>━━ 📦 Linux Payloads (ps4boot) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span></b>":LBL "" \
-        --field="  🚀 ps4-linux-payloads — download + compile":BTN 'bash -c "do_git_payloads"' \
-        --field="  📖 README GoldHEN / bzImage / initramfs":BTN         'bash -c "do_payloads_readme"' \
-        --field="  ⚡ ps4-kexec — kexec payload (boot chain)":BTN  'bash -c "do_git_kexec"' \
+        --field="  🚀 ps4-linux-payloads — download":BTN          'bash -c "do_git_payloads"' \
+        --field="  🔨 Compiler ps4-linux-payloads (make)":BTN     'bash -c "do_payload_compile"' \
+        --field="  📖 README GoldHEN / bzImage / initramfs":BTN   'bash -c "do_payloads_readme"' \
+        --field="  ⚡ ps4-kexec — kexec payload (boot chain)":BTN 'bash -c "do_git_kexec"' \
         \
         --field="":LBL "" \
         --field="<b><span foreground='${C_SECTION}'>━━ 🛠  Initramfs Builder ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span></b>":LBL "" \
@@ -1937,8 +1938,9 @@ Current sources: <tt>$src</tt>\n" \
         --field="<b><span foreground='${C_SECTION}'>━━ 🚀 Deployment ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span></b>":LBL "" \
         --field="  💾 Prepare a PS4 boot USB drive":BTN            'bash -c "do_prepare_usb"' \
         --field="  📡 FTP Transfer → /data/linux/boot/ on PS4":BTN 'bash -c "do_ftp_transfer"' \
-        --field="  ⚙  Edit bootargs.txt / vram.txt":BTN              'bash -c "do_edit_bootargs"' \
-        --field="  📂 Open PROJECT-PS4/":BTN                         'bash -c "do_open_project_dir"' \
+        --field="  ⚙  Edit bootargs.txt / vram.txt / gtt.txt":BTN 'bash -c "do_edit_bootargs"' \
+        --field="  <small><i>→ gtt.txt : GTT max (Mo) — PS4 Pro recommandé : 4096</i></small>":LBL "" \
+        --field="  📂 Open PROJECT-PS4/":BTN                       'bash -c "do_open_project_dir"' \
         \
         "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" \
         >/dev/null &
@@ -2739,12 +2741,13 @@ do_prepare_usb() {
         --field="initramfs.cpio.gz :":FL "${initramfs_default:-$PROJECT_DIR/}" \
         --field="Create bootargs.txt:":CHK "FALSE" \
         --field="Create vram.txt:":CHK "FALSE" \
+        --field="Create gtt.txt:":CHK "FALSE" \
         --field="I confirm I want to ERASE $sel_dev:":CHK "FALSE" \
         --button="Cancel:1" --button="🚀 Partition and prepare:0" \
         --width=700)
     [ $? -ne 0 ] || [ -z "$out" ] && return
 
-    IFS='|' read -r bzimage_src initramfs_src do_bootargs do_vram confirm_erase <<< "$out"
+    IFS='|' read -r bzimage_src initramfs_src do_bootargs do_vram do_gtt confirm_erase <<< "$out"
     bzimage_src="${bzimage_src//|/}"
     initramfs_src="${initramfs_src//|/}"
 
@@ -2757,20 +2760,28 @@ do_prepare_usb() {
     [ -f "$bzimage_src" ]   && copy_bz="$bzimage_src"
     [ -f "$initramfs_src" ] && copy_init="$initramfs_src"
 
-    local bootargs_val="" vram_val=""
-    if [ "$do_bootargs" = "TRUE" ] || [ "$do_vram" = "TRUE" ]; then
+    local bootargs_val="" vram_val="" gtt_val=""
+    if [ "$do_bootargs" = "TRUE" ] || [ "$do_vram" = "TRUE" ] || [ "$do_gtt" = "TRUE" ]; then
+        # Lire les valeurs courantes sauvegardées comme défauts
+        local def_ba; def_ba=$(cat "$BOOTARGS_FILE" 2>/dev/null || \
+            echo "amdgpu.cik_support=1 amdgpu.si_support=1 amdgpu.dc=0 mitigations=off nopti")
+        local def_vram; def_vram=$(cat "$VRAM_FILE"  2>/dev/null || echo "512")
+        local def_gtt;  def_gtt=$(cat  "$GTT_FILE"   2>/dev/null || echo "4096")
+
         local bv_out
         bv_out=$(yad --center --borders=10 \
             --title="Text file contents" \
             --form \
-            --text="<b>Optional file contents</b>\n\n<small>bootargs.txt: arguments passed to the kernel\nvram.txt: VRAM size in MB (e.g. 256)</small>\n" \
-            --field="bootargs.txt :":TEXT "amdgpu.cik_support=1 amdgpu.si_support=1 amdgpu.dc=0 mitigations=off nopti" \
-            --field="vram.txt (MB):":TEXT "256" \
+            --text="<b>Optional file contents</b>\n\n<small>bootargs.txt : arguments passed to the kernel\nvram.txt     : VRAM carve-out in MB  <b>(PS4 Pro recomm. : 512)</b>\ngtt.txt      : GTT max in MB         <b>(PS4 Pro recomm. : 4096)</b></small>\n" \
+            --field="bootargs.txt :":TEXT "$def_ba" \
+            --field="vram.txt (Mo):":TEXT "$def_vram" \
+            --field="gtt.txt  (Mo):":TEXT "$def_gtt" \
             --button="Cancel:1" --button="OK:0" \
-            --width=700)
+            --width=760)
         [ $? -ne 0 ] || [ -z "$bv_out" ] && return
         bootargs_val=$(echo "$bv_out" | cut -d'|' -f1)
         vram_val=$(echo "$bv_out"     | cut -d'|' -f2)
+        gtt_val=$(echo "$bv_out"      | cut -d'|' -f3)
     fi
 
     # Partitioning plan summary for the final confirmation
@@ -2883,6 +2894,10 @@ echo '  ✓ bootargs.txt created'")
 $([ "$do_vram" = "TRUE" ] && echo "echo '--- Creating vram.txt ---'
 echo '$vram_val' | sudo tee \"\$MNT/vram.txt\" >/dev/null
 echo '  ✓ vram.txt created'")
+
+$([ "$do_gtt" = "TRUE" ] && echo "echo '--- Creating gtt.txt ---'
+echo '$gtt_val' | sudo tee \"\$MNT/gtt.txt\" >/dev/null
+echo '  ✓ gtt.txt created  (amdgpu.gttsize=${gtt_val} Mo)'")
 
 echo ''
 echo '=== FAT32 partition contents ($lbl_fat) ==='
@@ -3013,40 +3028,50 @@ export -f do_ftp_transfer
 #------------------------------------------------------------------------
 BOOTARGS_FILE="$CONF_DIR/bootargs.txt"
 VRAM_FILE="$CONF_DIR/vram.txt"
-export BOOTARGS_FILE VRAM_FILE
+GTT_FILE="$CONF_DIR/gtt.txt"
+export BOOTARGS_FILE VRAM_FILE GTT_FILE
 
 [ ! -f "$BOOTARGS_FILE" ] && cat > "$BOOTARGS_FILE" << 'BAEOF'
-amdgpu.cik_support=1 amdgpu.si_support=1 amdgpu.dc=0 amdgpu.gttsize=2048 amdgpu.vm_fragment_size=9 amdgpu.pcie_gen2=1 amdgpu.aspm=0 amdgpu.dpm=1 amdgpu.lockup_timeout=10000 mitigations=off nopti spectre_v2=off noibpb noibrs ibt=off processor.max_cstate=1 idle=nomwait
+amdgpu.cik_support=1 amdgpu.si_support=1 amdgpu.dc=0 amdgpu.vm_fragment_size=9 amdgpu.pcie_gen2=1 amdgpu.aspm=0 amdgpu.dpm=1 amdgpu.lockup_timeout=10000 mitigations=off nopti spectre_v2=off noibpb noibrs ibt=off processor.max_cstate=1 idle=nomwait
 BAEOF
-[ ! -f "$VRAM_FILE" ] && echo "256" > "$VRAM_FILE"
+# PS4 Pro recommandé : VRAM 512 Mo (carve-out minimal), GTT 4096 Mo
+[ ! -f "$VRAM_FILE" ] && echo "512"  > "$VRAM_FILE"
+[ ! -f "$GTT_FILE"  ] && echo "4096" > "$GTT_FILE"
 
 do_edit_bootargs() {
-    local cur_ba cur_vram
-    cur_ba=$(cat "$BOOTARGS_FILE"  2>/dev/null)
-    cur_vram=$(cat "$VRAM_FILE"    2>/dev/null || echo "256")
+    local cur_ba cur_vram cur_gtt
+    cur_ba=$(cat   "$BOOTARGS_FILE" 2>/dev/null)
+    cur_vram=$(cat "$VRAM_FILE"     2>/dev/null || echo "512")
+    cur_gtt=$(cat  "$GTT_FILE"      2>/dev/null || echo "4096")
 
     local out
     out=$(yad --center --borders=10 \
-        --title="Éditeur bootargs.txt / vram.txt" \
+        --title="Éditeur bootargs.txt / vram.txt / gtt.txt" \
         --form \
         --text="<b>Édition des fichiers de configuration kernel PS4</b>\n
 <b>bootargs.txt</b> — arguments passés au kernel au démarrage
-<b>vram.txt</b>     — taille VRAM réservée (en Mo)
+<b>vram.txt</b>     — VRAM réservée (Mo) — <small>PS4 Pro recommandé : 512</small>
+<b>gtt.txt</b>      — GTT max (Mo)       — <small>PS4 Pro recommandé : 4096 (était 3072)</small>
 
-<small>Paramètres UART (désactivé sur noyaux récents) :
+<small>GTT = mémoire système que le GPU peut <b>emprunter</b> si besoin
+      (pas réservée statiquement — libérée si le GPU ne l'utilise pas)
+      Gain effectif : ~1,5 Go de RAM libérée pour le système
+
+Paramètres UART (désactivé sur noyaux récents) :
   Éolie/Belize : <tt>console=uart8250,mmio32,0xd0340000</tt>
   Baïkal       : <tt>console=uart8250,mmio32,0xC890E000</tt></small>\n" \
         --field="bootargs.txt :":TEXT "$cur_ba" \
-        --field="VRAM (Mo) :":TEXT "$cur_vram" \
+        --field="VRAM (Mo) — vram.txt :":TEXT "$cur_vram" \
+        --field="GTT  (Mo) — gtt.txt :":TEXT "$cur_gtt" \
         --field="Ajouter mitigations=off :":CHK "FALSE" \
         --field="Ajouter UART Éolie/Belize :":CHK "FALSE" \
         --field="Ajouter UART Baïkal :":CHK "FALSE" \
         --button="Cancel:1" \
         --button="💾 Save:0" \
-        --width=800)
+        --width=820)
     [ $? -ne 0 ] || [ -z "$out" ] && return
 
-    IFS='|' read -r new_ba new_vram add_mit add_uart_belize add_uart_baikal <<< "$out"
+    IFS='|' read -r new_ba new_vram new_gtt add_mit add_uart_belize add_uart_baikal <<< "$out"
 
     # Ajouter les options cochées si pas déjà présentes
     [ "$add_mit"          = "TRUE" ] && \
@@ -3062,15 +3087,39 @@ do_edit_bootargs() {
     # Nettoyer les espaces multiples
     new_ba=$(echo "$new_ba" | tr -s ' ' | sed 's/^ //;s/ $//')
 
-    echo "$new_ba"   > "$BOOTARGS_FILE"
+    # ── Sauvegarder vram.txt et gtt.txt ────────────────────────────
     echo "$new_vram" > "$VRAM_FILE"
+    echo "$new_gtt"  > "$GTT_FILE"
+
+    # ── Synchroniser amdgpu.gttsize dans bootargs.txt ──────────────
+    # Si le payload ne lit pas encore gtt.txt nativement,
+    # on s'assure que amdgpu.gttsize est dans bootargs.txt
+    local gtt_int="${new_gtt//[^0-9]/}"
+    if [ -n "$gtt_int" ] && [ "$gtt_int" -gt 0 ] 2>/dev/null; then
+        if echo "$new_ba" | grep -q "amdgpu\.gttsize="; then
+            # Mettre à jour la valeur existante
+            new_ba=$(echo "$new_ba" | \
+                sed "s/amdgpu\.gttsize=[0-9]*/amdgpu.gttsize=$gtt_int/g")
+        else
+            # Injecter après amdgpu.dc=0 si présent, sinon en tête
+            if echo "$new_ba" | grep -q "amdgpu\.dc="; then
+                new_ba=$(echo "$new_ba" | \
+                    sed "s/amdgpu\.dc=0/amdgpu.dc=0 amdgpu.gttsize=$gtt_int/")
+            else
+                new_ba="amdgpu.gttsize=$gtt_int $new_ba"
+            fi
+        fi
+        new_ba=$(echo "$new_ba" | tr -s ' ' | sed 's/^ //;s/ $//')
+    fi
+
+    echo "$new_ba" > "$BOOTARGS_FILE"
 
     # Proposer de copier vers USB ou via FTP
     local action
     action=$(yad --center --borders=10 \
         --title="Fichiers sauvegardés" \
         --list \
-        --text="✓ <b>bootargs.txt</b> et <b>vram.txt</b> sauvegardés dans :\n<tt>$CONF_DIR</tt>\n\nQue voulez-vous faire ensuite ?" \
+        --text="✓ <b>bootargs.txt</b>, <b>vram.txt</b> et <b>gtt.txt</b> sauvegardés dans :\n<tt>$CONF_DIR</tt>\n\n<small>amdgpu.gttsize=${gtt_int} Mo injecté dans bootargs.txt</small>\n\nQue voulez-vous faire ensuite ?" \
         --column="Action" \
         --column="Description" \
         "usb"   "Copier sur la clé USB de boot" \
@@ -3079,7 +3128,7 @@ do_edit_bootargs() {
         "done"  "Terminer" \
         --print-column=1 --separator="" \
         --button="Cancel:1" --button="OK:0" \
-        --width=480 --height=280)
+        --width=500 --height=280)
     [ $? -ne 0 ] || [ -z "$action" ] && return
     action="${action//|/}"
 
@@ -3090,6 +3139,92 @@ do_edit_bootargs() {
     esac
 }
 export -f do_edit_bootargs
+
+#------------------------------------------------------------------------
+# Compiler ps4-linux-payloads (make clean && make)
+#------------------------------------------------------------------------
+do_payload_compile() {
+    local dest="$PROJECT_DIR/ps4-linux-payloads"
+
+    if [ ! -d "$dest/linux" ]; then
+        yad_confirm "ps4-linux-payloads introuvable dans :\n<tt>$dest</tt>\n\nTélécharger et compiler depuis zéro ?" \
+            && do_git_payloads
+        return
+    fi
+
+    local out
+    out=$(yad --center --borders=10 \
+        --title="Compiler ps4-linux-payloads" \
+        --form \
+        --text="<b>Compilation du payload PS4 Linux</b>\n\n<tt>$dest/linux</tt>\n
+<small>Cible : Jaguar / btver2 · make clean puis make</small>\n" \
+        --field="make clean avant compilation :":CHK "TRUE" \
+        --field="Copier .elf sur USB après (si monté) :":CHK "FALSE" \
+        --button="Cancel:1" --button="🚀 Compiler:0" \
+        --width=560)
+    [ $? -ne 0 ] || [ -z "$out" ] && return
+
+    IFS='|' read -r do_clean do_copy_usb <<< "$out"
+
+    local tmpscript
+    tmpscript=$(mktemp /tmp/hyb-payload-compile-XXXX.sh)
+    cat > "$tmpscript" << PEOF
+#!/bin/bash
+echo "╔══════════════════════════════════════════════════════════════╗"
+echo "║  🚀  Compilation ps4-linux-payloads                         ║"
+echo "╚══════════════════════════════════════════════════════════════╝"
+echo ""
+echo "  Dossier : $dest/linux"
+echo "  Début   : \$(date)"
+echo ""
+cd "$dest/linux" || { echo "✗ Dossier introuvable"; read -rp '[Entrée]'; exit 1; }
+
+$([ "$do_clean" = "TRUE" ] && echo "echo '--- make clean ---'
+make clean 2>&1
+echo ''")
+
+echo "--- make ---"
+make 2>&1
+BUILD_RET=\$?
+echo ""
+echo "  Fin : \$(date)"
+echo ""
+
+if [ \$BUILD_RET -eq 0 ]; then
+    echo "✓ Compilation réussie !"
+    echo ""
+    echo "=== Fichiers générés ==="
+    ls -lh *.elf *.bin 2>/dev/null || ls -lh
+    echo ""
+    $([ "$do_copy_usb" = "TRUE" ] && cat << 'USBCOPY'
+USB_MNT=""
+for m in /media/$USER/PS4BOOT /media/$USER/ps4boot /media/usb /run/media/$USER/PS4BOOT /run/media/$USER/ps4boot; do
+    [ -d "$m" ] && USB_MNT="$m" && break
+done
+if [ -n "$USB_MNT" ]; then
+    echo "--- Copie vers USB : $USB_MNT ---"
+    cp *.elf "$USB_MNT/" 2>/dev/null && echo "  ✓ .elf copiés" || echo "  ⚠ Aucun .elf trouvé"
+else
+    echo "  ⚠ Aucune clé USB PS4BOOT montée détectée"
+fi
+USBCOPY
+)
+else
+    echo "✗ Erreur de compilation (code \$BUILD_RET)"
+    echo "  Vérifiez que make + outils de build sont installés."
+fi
+echo ""
+read -rp '[Press Enter to close]'
+PEOF
+    chmod +x "$tmpscript"
+    case "$TERM_BIN" in
+        xfce4-terminal) xfce4-terminal --title="🚀 Compile Payload" -e "bash -c '$tmpscript; rm -f $tmpscript'" ;;
+        gnome-terminal) gnome-terminal --title="🚀 Compile Payload" -- bash -c "$tmpscript; rm -f $tmpscript" ;;
+        mate-terminal)  mate-terminal  --title="🚀 Compile Payload" -e "bash -c '$tmpscript; rm -f $tmpscript'" ;;
+        *)              xterm -title "🚀 Compile Payload" -e bash -c "$tmpscript; rm -f $tmpscript" ;;
+    esac
+}
+export -f do_payload_compile
 
 #------------------------------------------------------------------------
 # 6. Builder initramfs minimaliste (busybox statique + repackage cpio.gz)
@@ -3378,7 +3513,8 @@ Download, compile and deploy the full PS4 Linux ecosystem.\n" \
         \
         --field="":LBL "" \
         --field="<b>— KERNEL CONFIGURATION —</b>":LBL "" \
-        --field="  ⚙  Edit bootargs.txt / vram.txt":BTN 'bash -c "do_edit_bootargs"' \
+        --field="  ⚙  Edit bootargs.txt / vram.txt / gtt.txt":BTN 'bash -c "do_edit_bootargs"' \
+        --field="  🔨 Compiler ps4-linux-payloads (make)":BTN     'bash -c "do_payload_compile"' \
         \
         --field="":LBL "" \
         --field="<b>— INITRAMFS BUILDER —</b>":LBL "" \
@@ -4575,6 +4711,7 @@ export -f do_git_goldhen
 export -f do_prepare_usb
 export -f do_ftp_transfer
 export -f do_edit_bootargs
+export -f do_payload_compile
 export -f do_build_initramfs
 export -f do_open_url_alazif
 export -f do_open_project_dir
