@@ -11,7 +11,7 @@
 MESSAGE="$1"
 
 if [ -z "$MESSAGE" ]; then
-    MESSAGE="Mise à jour des payloaders PS4"
+    MESSAGE="Mise à jour des liens"
 fi
 
 echo "=== Ajout des fichiers modifiés ==="
