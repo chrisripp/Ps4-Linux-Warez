@@ -14,6 +14,9 @@ if [ -z "$MESSAGE" ]; then
     MESSAGE="Mise à jour des liens"
 fi
 
+echo "=== Récupération des changements distants ==="
+git pull origin main
+
 echo "=== Ajout des fichiers modifiés ==="
 git add .
 
