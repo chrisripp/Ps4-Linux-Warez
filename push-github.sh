@@ -15,6 +15,7 @@ if [ -z "$MESSAGE" ]; then
 fi
 
 echo "=== Récupération des changements distants ==="
+git config pull.rebase false
 git pull origin main
 
 echo "=== Ajout des fichiers modifiés ==="
